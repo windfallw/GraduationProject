@@ -1,5 +1,7 @@
 #include <lvgl.h>
 #include <TFT_eSPI.h>
+#include <LITTLEFS.h>
+#include "FS.h"
 
 TFT_eSPI tft = TFT_eSPI(); /* TFT instance */
 
@@ -12,11 +14,12 @@ static lv_color_t buf[screenWidth * 10];
 
 #if LV_USE_LOG != 0
 /* Serial debugging */
-void my_print(lv_log_level_t level, const char *file, uint32_t line, const char *fn_name, const char *dsc)
+void my_log_cb(const char *buf)
 {
-  Serial.printf("%s(%s)@%d->%s\r\n", file, fn_name, line, dsc);
+  Serial.printf("%s\r\n", buf);
   Serial.flush();
 }
+
 #endif
 
 /* Display flushing */
@@ -40,7 +43,7 @@ void setup()
   lv_init();
 
 #if LV_USE_LOG != 0
-  lv_log_register_print_cb(my_print); /* register print function for debugging */
+  lv_log_register_print_cb(my_log_cb); /* register print function for debugging */
 #endif
 
   tft.begin();        /* TFT init */
