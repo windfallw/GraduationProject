@@ -1,5 +1,13 @@
 #include "lv_tft.h"
 
+#define ROTARY_ENCODER_BUTTON_PIN 25
+#define ROTARY_ENCODER_A_PIN 26
+#define ROTARY_ENCODER_B_PIN 27
+#define ROTARY_ENCODER_VCC_PIN -1
+#define ROTARY_ENCODER_STEPS 4
+
+AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, ROTARY_ENCODER_BUTTON_PIN, ROTARY_ENCODER_VCC_PIN, ROTARY_ENCODER_STEPS);
+
 TFT_eSPI tft = TFT_eSPI();
 
 const uint32_t screenWidth = 160;
@@ -25,6 +33,31 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
     tft.pushColors((uint16_t *)&color_p->full, w * h, true);
     tft.endWrite();
     lv_disp_flush_ready(disp);
+}
+
+void IRAM_ATTR readEncoderISR()
+{
+    rotaryEncoder.readEncoder_ISR();
+}
+
+void set_rotary_encoder()
+{
+    rotaryEncoder.begin();
+    rotaryEncoder.setup(readEncoderISR);
+    bool circleValues = false;
+    rotaryEncoder.setBoundaries(-1000, 1000, circleValues);
+    rotaryEncoder.setAcceleration(50);
+    // rotaryEncoder.setEncoderValue(0);
+}
+
+void encoder_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
+{
+    data->enc_diff = rotaryEncoder.encoderChanged();
+    // Serial.println(data->enc_diff);
+    if (rotaryEncoder.isEncoderButtonDown())
+        data->state = LV_INDEV_STATE_PRESSED;
+    else
+        data->state = LV_INDEV_STATE_RELEASED;
 }
 
 void event_handler(lv_event_t *e)
@@ -70,8 +103,12 @@ void set_disp_drv()
     static lv_indev_drv_t indev_drv;
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_ENCODER;
-    // indev_drv.read_cb = my_touchpad_read;
-    lv_indev_drv_register(&indev_drv);
+    indev_drv.read_cb = encoder_read;
+    lv_indev_t *my_indev = lv_indev_drv_register(&indev_drv);
+
+    lv_group_t *g = lv_group_create();
+
+    lv_indev_set_group(my_indev, g);
 
     lv_obj_t *label;
 
@@ -92,4 +129,7 @@ void set_disp_drv()
     label = lv_label_create(btn2);
     lv_label_set_text(label, "Toggle");
     lv_obj_center(label);
+
+    lv_group_add_obj(g, btn1);
+    lv_group_add_obj(g, btn2);
 }

@@ -9,6 +9,8 @@ void setup()
 {
     Serial.begin(115200);
     set_disp_drv();
+    set_rotary_encoder();
+
     // if (!LITTLEFS.begin(FORMAT_LITTLEFS_IF_FAILED))
     // {
     //     Serial.println("LITTLEFS Mount Failed");
