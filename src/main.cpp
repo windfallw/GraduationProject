@@ -1,24 +1,23 @@
+#include "file.h"
+#include "tof.h"
 #include "lv_tft.h"
 
-// #include "FS.h"
-// #include <LITTLEFS.h>
-
-// #define FORMAT_LITTLEFS_IF_FAILED true
+SKPTOFLIDAR skp1 = SKPTOFLIDAR(&Serial1, 115200, 14, 15);
 
 void setup()
 {
     Serial.begin(115200);
+    set_littlefs();
+    skp1.start();
+
     set_disp_drv();
     set_rotary_encoder();
 
-    // if (!LITTLEFS.begin(FORMAT_LITTLEFS_IF_FAILED))
-    // {
-    //     Serial.println("LITTLEFS Mount Failed");
-    //     return;
-    // }
+    listDir(LITTLEFS, "/", 3);
 }
 
 void loop()
 {
+    skp1.read();
     lv_timer_handler();
 }
