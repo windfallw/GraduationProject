@@ -16,6 +16,8 @@ const uint32_t screenHeight = 128;
 lv_disp_draw_buf_t draw_buf;
 lv_color_t buf[screenWidth * 10];
 
+lv_obj_t *cz_label;
+
 #if LV_USE_LOG != 0
 void my_log_cb(const char *buf)
 {
@@ -107,7 +109,6 @@ void set_disp_drv()
     lv_indev_t *my_indev = lv_indev_drv_register(&indev_drv);
 
     lv_group_t *g = lv_group_create();
-
     lv_indev_set_group(my_indev, g);
 
     lv_obj_t *label;
@@ -129,6 +130,11 @@ void set_disp_drv()
     label = lv_label_create(btn2);
     lv_label_set_text(label, "Toggle");
     lv_obj_center(label);
+
+    cz_label = lv_label_create(lv_scr_act());
+    lv_label_set_text(cz_label, "当前:  mm");
+    lv_obj_set_style_text_font(cz_label, &lv_font_simsun_16_cjk, 0);
+    lv_obj_align(cz_label, LV_ALIGN_CENTER, 0, 0);
 
     lv_group_add_obj(g, btn1);
     lv_group_add_obj(g, btn2);

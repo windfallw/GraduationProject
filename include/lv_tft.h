@@ -9,6 +9,8 @@ extern AiEsp32RotaryEncoder rotaryEncoder;
 
 extern TFT_eSPI tft;
 
+extern lv_obj_t *cz_label;
+
 extern void set_rotary_encoder();
 extern void set_disp_drv();
 

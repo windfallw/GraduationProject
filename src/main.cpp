@@ -20,5 +20,6 @@ void setup()
 void loop()
 {
     skp1.read_handler();
+    lv_label_set_text_fmt(cz_label, "当前: %d mm", skp1.distance);
     lv_timer_handler();
 }
