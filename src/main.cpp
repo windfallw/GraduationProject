@@ -2,12 +2,13 @@
 #include "tof.h"
 #include "lv_tft.h"
 
-SKPTOFLIDAR skp1 = SKPTOFLIDAR(&Serial1, 115200, 14, 15);
+SKPTOFLIDAR skp1 = SKPTOFLIDAR(&Serial1, 921600, 15, 14);
 
 void setup()
 {
     Serial.begin(115200);
     set_littlefs();
+
     skp1.start();
 
     set_disp_drv();
@@ -18,6 +19,6 @@ void setup()
 
 void loop()
 {
-    skp1.read();
+    skp1.read_handler();
     lv_timer_handler();
 }
