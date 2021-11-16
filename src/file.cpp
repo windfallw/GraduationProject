@@ -1,6 +1,9 @@
 #include "file.h"
 
 #define FORMAT_LITTLEFS_IF_FAILED true
+#define CONFIG_FILE "/config.json"
+
+Config config;
 
 void set_littlefs()
 {
@@ -64,4 +67,80 @@ void listDir(fs::FS &fs, const char *dirname, uint8_t levels)
         }
         file = root.openNextFile();
     }
+}
+
+bool readConfigFile()
+{
+    if (!LITTLEFS.exists(CONFIG_FILE))
+        return false;
+
+    File file = LITTLEFS.open(CONFIG_FILE, "r");
+
+    StaticJsonDocument<512> doc;
+
+    DeserializationError error = deserializeJson(doc, file);
+
+    file.close();
+
+    if (error)
+    {
+        Serial.println(F("Failed to read file, using default configuration"));
+        return false;
+    }
+
+    config.limit = doc["limit"];
+
+    strlcpy(config.hostname,                 // <- destination
+            doc["hostname"] | "example.com", // <- source
+            sizeof(config.hostname));        // <- destination's capacity
+
+    return true;
+}
+
+bool writeConfigFile()
+{
+    Serial.println("Saving config file");
+
+    File file = LITTLEFS.open(CONFIG_FILE, "w");
+
+    if (!file)
+    {
+        Serial.println(F("Failed to open config file for writing"));
+        return false;
+    }
+
+    StaticJsonDocument<512> doc;
+
+    doc["limit"] = config.limit;
+    doc["hostname"] = config.hostname;
+
+    if (serializeJson(doc, file) == 0)
+    {
+        Serial.println(F("Failed to write to file"));
+    }
+
+    file.close();
+
+    return true;
+}
+
+void readFile(const char *path)
+{
+    Serial.printf("Reading file: %s\r\n", path);
+
+    File file = LITTLEFS.open(path);
+    if (!file || file.isDirectory())
+    {
+        Serial.println("- failed to open file for reading");
+        return;
+    }
+
+    Serial.println("- read from file:");
+    while (file.available())
+    {
+        Serial.write(file.read());
+    }
+    Serial.println();
+
+    file.close();
 }

@@ -14,12 +14,21 @@ void setup()
     set_disp_drv();
     set_rotary_encoder();
 
+    writeConfigFile();
+
+    readConfigFile();
+
+    Serial.printf("%s %d \r\n", config.hostname, config.limit);
+
+    readFile("/config.json");
+
     listDir(LITTLEFS, "/", 3);
 }
 
 void loop()
 {
-    skp1.read_handler();
+    skp1.read_handler(); 
     lv_label_set_text_fmt(cz_label, "当前: %d mm", skp1.distance);
+
     lv_timer_handler();
 }
