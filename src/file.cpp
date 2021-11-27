@@ -3,8 +3,6 @@
 #define FORMAT_LITTLEFS_IF_FAILED true
 #define CONFIG_FILE "/config.json"
 
-Config config;
-
 void set_littlefs()
 {
     if (!LITTLEFS.begin(FORMAT_LITTLEFS_IF_FAILED))
@@ -13,11 +11,10 @@ void set_littlefs()
     }
 }
 
-void listDir(fs::FS &fs, const char *dirname, uint8_t levels)
+void listDir(const char *dirname, uint8_t levels)
 {
     Serial.printf("Listing directory: %s\r\n", dirname);
-
-    File root = fs.open(dirname);
+    File root = LITTLEFS.open(dirname);
     if (!root)
     {
         Serial.println("- failed to open directory");
@@ -28,26 +25,19 @@ void listDir(fs::FS &fs, const char *dirname, uint8_t levels)
         Serial.println(" - not a directory");
         return;
     }
-
     File file = root.openNextFile();
     while (file)
     {
         if (file.isDirectory())
         {
             Serial.print("  DIR : ");
-
-#ifdef CONFIG_LITTLEFS_FOR_IDF_3_2
-            Serial.println(file.name());
-#else
             Serial.print(file.name());
             time_t t = file.getLastWrite();
             struct tm *tmstruct = localtime(&t);
             Serial.printf("  LAST WRITE: %d-%02d-%02d %02d:%02d:%02d\n", (tmstruct->tm_year) + 1900, (tmstruct->tm_mon) + 1, tmstruct->tm_mday, tmstruct->tm_hour, tmstruct->tm_min, tmstruct->tm_sec);
-#endif
-
             if (levels)
             {
-                listDir(fs, file.name(), levels - 1);
+                listDir(file.name(), levels - 1);
             }
         }
         else
@@ -55,15 +45,10 @@ void listDir(fs::FS &fs, const char *dirname, uint8_t levels)
             Serial.print("  FILE: ");
             Serial.print(file.name());
             Serial.print("  SIZE: ");
-
-#ifdef CONFIG_LITTLEFS_FOR_IDF_3_2
-            Serial.println(file.size());
-#else
             Serial.print(file.size());
             time_t t = file.getLastWrite();
             struct tm *tmstruct = localtime(&t);
             Serial.printf("  LAST WRITE: %d-%02d-%02d %02d:%02d:%02d\n", (tmstruct->tm_year) + 1900, (tmstruct->tm_mon) + 1, tmstruct->tm_mday, tmstruct->tm_hour, tmstruct->tm_min, tmstruct->tm_sec);
-#endif
         }
         file = root.openNextFile();
     }
@@ -97,6 +82,27 @@ bool readConfigFile()
     return true;
 }
 
+void readFile(const char *path)
+{
+    Serial.printf("Reading file: %s\r\n", path);
+
+    File file = LITTLEFS.open(path);
+    if (!file || file.isDirectory())
+    {
+        Serial.println("- failed to open file for reading");
+        return;
+    }
+
+    Serial.println("- read from file:");
+    while (file.available())
+    {
+        Serial.write(file.read());
+    }
+    Serial.println();
+
+    file.close();
+}
+
 bool writeConfigFile()
 {
     Serial.println("Saving config file");
@@ -122,25 +128,4 @@ bool writeConfigFile()
     file.close();
 
     return true;
-}
-
-void readFile(const char *path)
-{
-    Serial.printf("Reading file: %s\r\n", path);
-
-    File file = LITTLEFS.open(path);
-    if (!file || file.isDirectory())
-    {
-        Serial.println("- failed to open file for reading");
-        return;
-    }
-
-    Serial.println("- read from file:");
-    while (file.available())
-    {
-        Serial.write(file.read());
-    }
-    Serial.println();
-
-    file.close();
 }

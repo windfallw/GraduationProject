@@ -10,8 +10,9 @@ AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(ROTARY_ENCODER_A_PIN, 
 
 TFT_eSPI tft = TFT_eSPI();
 
-const uint32_t screenWidth = 160;
-const uint32_t screenHeight = 128;
+// TFT_ESPI reverse height and width in lvgl
+const uint32_t screenWidth = TFT_HEIGHT;
+const uint32_t screenHeight = TFT_WIDTH;
 
 lv_disp_draw_buf_t draw_buf;
 lv_color_t buf[screenWidth * 10];
