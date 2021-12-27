@@ -13,5 +13,6 @@ extern lv_obj_t *cz_label;
 
 extern void set_rotary_encoder();
 extern void set_disp_drv();
+extern void set_ui();
 
 #endif

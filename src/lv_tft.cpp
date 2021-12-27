@@ -17,6 +17,9 @@ const uint32_t screenHeight = TFT_WIDTH;
 lv_disp_draw_buf_t draw_buf;
 lv_color_t buf[screenWidth * 10];
 
+lv_disp_t *disp;
+lv_indev_t *indev;
+
 lv_obj_t *cz_label;
 
 #if LV_USE_LOG != 0
@@ -95,22 +98,26 @@ void set_disp_drv()
     lv_disp_drv_init(&disp_drv);
     disp_drv.hor_res = screenWidth;
     disp_drv.ver_res = screenHeight;
-
     disp_drv.rotated = LV_DISP_ROT_NONE;
-
     disp_drv.flush_cb = my_disp_flush;
     disp_drv.draw_buf = &draw_buf;
-    lv_disp_drv_register(&disp_drv);
 
-    /*Initialize the (dummy) input device driver*/
+    disp = lv_disp_drv_register(&disp_drv);
+
+    /*Initialize the input device driver*/
     static lv_indev_drv_t indev_drv;
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_ENCODER;
     indev_drv.read_cb = encoder_read;
-    lv_indev_t *my_indev = lv_indev_drv_register(&indev_drv);
 
+    indev = lv_indev_drv_register(&indev_drv);
+}
+
+void set_ui()
+{
+    /* Ui design */
     lv_group_t *g = lv_group_create();
-    lv_indev_set_group(my_indev, g);
+    lv_indev_set_group(indev, g);
 
     lv_obj_t *label;
 
@@ -136,6 +143,10 @@ void set_disp_drv()
     lv_label_set_text(cz_label, "当前:  mm");
     lv_obj_set_style_text_font(cz_label, &lv_font_simsun_16_cjk, 0);
     lv_obj_align(cz_label, LV_ALIGN_CENTER, 0, 0);
+
+    lv_obj_t *t_label = lv_label_create(lv_scr_act());
+    lv_label_set_text(t_label, LV_SYMBOL_WIFI "no connection");
+    lv_obj_align(t_label, LV_ALIGN_TOP_LEFT, 0, 0);
 
     lv_group_add_obj(g, btn1);
     lv_group_add_obj(g, btn2);
