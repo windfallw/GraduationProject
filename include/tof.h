@@ -12,6 +12,10 @@
 //     Serial.print(Serial2.readString());
 // }
 
+// ledcSetup(0, 50000, 8);
+// ledcAttachPin(22, 0);
+// ledcWrite(0, 25);
+
 class SKPTOFLIDAR
 {
 private:
@@ -25,6 +29,7 @@ public:
     uint32_t distance = 0;
 
     void start();
+    void stop();
     void print_buffs();
     void read_handler();
 };

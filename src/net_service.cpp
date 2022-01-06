@@ -29,6 +29,7 @@ public:
 
 void set_netsrv()
 {
+    WiFi.softAP("esp-captive");
     dnsServer.start(53, "*", WiFi.softAPIP());
     server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);
     server.begin();

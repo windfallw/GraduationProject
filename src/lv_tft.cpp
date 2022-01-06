@@ -21,6 +21,7 @@ lv_disp_t *disp;
 lv_indev_t *indev;
 
 lv_obj_t *cz_label;
+lv_obj_t *wifi_label;
 
 #if LV_USE_LOG != 0
 void my_log_cb(const char *buf)
@@ -66,20 +67,6 @@ void encoder_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
         data->state = LV_INDEV_STATE_RELEASED;
 }
 
-void event_handler(lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-
-    if (code == LV_EVENT_CLICKED)
-    {
-        LV_LOG_USER("Clicked");
-    }
-    else if (code == LV_EVENT_VALUE_CHANGED)
-    {
-        LV_LOG_USER("Toggled");
-    }
-}
-
 void set_disp_drv()
 {
     lv_init();
@@ -113,6 +100,20 @@ void set_disp_drv()
     indev = lv_indev_drv_register(&indev_drv);
 }
 
+void event_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if (code == LV_EVENT_CLICKED)
+    {
+        LV_LOG_USER("Clicked");
+    }
+    else if (code == LV_EVENT_VALUE_CHANGED)
+    {
+        LV_LOG_USER("Toggled");
+    }
+}
+
 void set_ui()
 {
     /* Ui design */
@@ -140,14 +141,14 @@ void set_ui()
     lv_obj_center(label);
 
     cz_label = lv_label_create(lv_scr_act());
-    lv_label_set_text(cz_label, "当前:  mm");
-    lv_obj_set_style_text_font(cz_label, &lv_font_simsun_16_cjk, 0);
     lv_obj_align(cz_label, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_style_text_font(cz_label, &lv_font_simsun_16_cjk, 0);
+    lv_label_set_text(cz_label, "当前:  mm");
 
-    lv_obj_t *t_label = lv_label_create(lv_scr_act());
-    lv_label_set_text(t_label, LV_SYMBOL_WIFI "no connection");
-    lv_obj_align(t_label, LV_ALIGN_TOP_LEFT, 0, 0);
-
+    wifi_label = lv_label_create(lv_scr_act());
+    lv_obj_align(wifi_label, LV_ALIGN_TOP_LEFT, 10, 10);
+    lv_obj_set_style_text_font(wifi_label, &lv_font_montserrat_20, 0);
+    lv_label_set_text(wifi_label, LV_SYMBOL_WIFI);
     lv_group_add_obj(g, btn1);
     lv_group_add_obj(g, btn2);
 }

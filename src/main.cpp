@@ -19,14 +19,13 @@ void setup()
     set_rotary_encoder();
     set_ui();
 
+    set_netsrv();
+
     // writeConfigFile();
     // readConfigFile();
     // Serial.printf("%s %d \r\n", config.hostname, config.limit);
     // readFile("/config.json");
     listDir("/", 3);
-
-    WiFi.softAP("esp-captive");
-    set_netsrv();
 }
 
 void update_ui()
@@ -38,7 +37,7 @@ void loop()
 {
     skp1.read_handler();
     skp2.read_handler();
-    
+
     update_ui();
     lv_timer_handler();
 

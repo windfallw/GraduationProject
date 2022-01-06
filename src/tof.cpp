@@ -41,6 +41,11 @@ void SKPTOFLIDAR::start()
     uart->write(startMeasure, sizeof(startMeasure));
 }
 
+void SKPTOFLIDAR::stop()
+{
+    uart->write(stopMeasure, sizeof(stopMeasure));
+}
+
 void SKPTOFLIDAR::print_buffs()
 {
     for (int i = 0; i < sizeof(buffs); i++)
