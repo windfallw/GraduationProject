@@ -3,14 +3,8 @@
 
 // #define RX1 15
 // #define TX1 14
-// #define RX2 21
-// #define TX2 13
-
-// Serial2.begin(115200, SERIAL_8N1, 16, 17);
-// if (Serial2.available())
-// {
-//     Serial.print(Serial2.readString());
-// }
+// #define RX2 16
+// #define TX2 17
 
 // ledcSetup(0, 50000, 8);
 // ledcAttachPin(22, 0);

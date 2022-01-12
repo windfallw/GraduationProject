@@ -2,12 +2,13 @@
 #define NETSRV
 
 #include <WiFi.h>
-#include <DNSServer.h>
-#include "AsyncTCP.h"
-#include "ESPAsyncWebServer.h"
+#include <WebServer.h>
+#include <AutoConnect.h>
 
-extern DNSServer dnsServer;
-extern AsyncWebServer server;
+extern WebServer Server;
+extern AutoConnect Portal;
+extern AutoConnectConfig acConfig;
+
 extern void set_netsrv();
 
 #endif

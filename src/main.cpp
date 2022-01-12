@@ -3,8 +3,18 @@
 #include "lv_tft.h"
 #include "net_service.h"
 
+TaskHandle_t Task1;
+
 SKPTOFLIDAR skp1 = SKPTOFLIDAR(&Serial1, 921600, 15, 14);
-SKPTOFLIDAR skp2 = SKPTOFLIDAR(&Serial2, 921600, 21, 13);
+SKPTOFLIDAR skp2 = SKPTOFLIDAR(&Serial2, 921600, 16, 17);
+
+void Task1code(void *pvParameters)
+{
+    for (;;)
+    {
+        Portal.handleClient();
+    }
+}
 
 void setup()
 {
@@ -19,13 +29,26 @@ void setup()
     set_rotary_encoder();
     set_ui();
 
-    set_netsrv();
+    // set_netsrv();
 
     // writeConfigFile();
     // readConfigFile();
     // Serial.printf("%s %d \r\n", config.hostname, config.limit);
     // readFile("/config.json");
     listDir("/", 3);
+
+    // ledcSetup(0, 100, 8);
+    // ledcAttachPin(22, 0);
+    // ledcWrite(0, 30);
+
+    // xTaskCreatePinnedToCore(
+    //     Task1code, /* Task function. */
+    //     "Task1",   /* name of task. */
+    //     10000,     /* Stack size of task */
+    //     NULL,      /* parameter of the task */
+    //     1,         /* priority of the task */
+    //     &Task1,    /* Task handle to keep track of created task */
+    //     0);        /* pin task to core 0 */
 }
 
 void update_ui()
@@ -40,6 +63,4 @@ void loop()
 
     update_ui();
     lv_timer_handler();
-
-    dnsServer.processNextRequest();
 }
