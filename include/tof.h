@@ -6,9 +6,9 @@
 // #define RX2 16
 // #define TX2 17
 
-// ledcSetup(0, 50000, 8);
-// ledcAttachPin(22, 0);
-// ledcWrite(0, 25);
+// ledcSetup(0, 100, 8);
+// ledcAttachPin(13, 0);
+// ledcWrite(0, 30);
 
 class SKPTOFLIDAR
 {

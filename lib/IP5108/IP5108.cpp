@@ -1,37 +1,52 @@
 #include "IP5108.h"
 
-IP5108::IP5108(uint8_t addr)
+#define IP5108_DEFATLT_ADDRESS 0x75
+
+IP5108::IP5108(TwoWire *i, int sdaPin, int sclPin, uint32_t frequency)
 {
-    Address = addr;
+    i2c = i;
+    i2c->begin(sdaPin, sclPin, frequency);
+    Address = IP5108_DEFATLT_ADDRESS;
 }
 
-void IP5108::begin()
+IP5108::~IP5108()
+{
+}
+
+void IP5108::set_up()
 {
     writeRegBit(SYS_CTL0, SYS_CTL0_BIT_FlashLight, false);
     writeRegBit(SYS_CTL0, SYS_CTL0_BIT_Light, false);
     writeRegBit(SYS_CTL1, SYS_CTL1_BIT_LowLoadOff, false);
     writeRegBit(SYS_CTL1, SYS_CTL1_BIT_LoadInsertAutoStartUp, false);
-    writeRegBit(SYS_CTL4, SYS_CTL4_BIT_VIN_PullOutBoost, true); //  VIN 拔出开启 BOOST
-    writeRegBit(SYS_CTL5, SYS_CTL5_BIT_KeyShutdownSet, true);   //  长按关机
+
+    writeRegBit(SYS_CTL3, SYS_CTL3_BIT_DoubleShortPress, true);
+    writeRegBit(SYS_CTL5, SYS_CTL5_BIT_KeyShutdownSet, false);
+    writeRegBit(SYS_CTL4, SYS_CTL4_BIT_VIN_PullOutBoost, true); // VIN 拔出开启 BOOST
+
     writeRegBits(MFP_CTL0, MFP_CTL0_BIT_LIGHT_Sel, MFP_CTL0_BIT_LIGHT_Sel_WLED);
-    writeRegBits(MFP_CTL0, MFP_CTL0_BIT_L4_Sel, MFP_CTL0_BIT_L4_Sel_L4);
     writeRegBits(MFP_CTL0, MFP_CTL0_BIT_L3_Sel, MFP_CTL0_BIT_L3_Sel_L3);
+    writeRegBits(MFP_CTL0, MFP_CTL0_BIT_L4_Sel, MFP_CTL0_BIT_L4_Sel_L4);
     writeRegBit(MFP_CTL1, MFP_CTL1_BIT_VSET_Sel, false);
     writeRegBit(MFP_CTL1, MFP_CTL1_BIT_RSET_Sel, false);
-    // writeRegBit(CHG_DIG_CTL4, CHG_DIG_CTL4_BIT_BatteryTypeInternalSet, true); //  外部 VSET PIN 设置电池类型
-    writeRegBit(CHG_DIG_CTL4, CHG_DIG_CTL4_BIT_BatteryTypeInternalSet, false);                        //  内部寄存器设置 设置电池类型
-    writeRegBits(Charger_CTL2, Charger_CTL2_BIT_BatteryTypeSet, Charger_CTL2_BIT_BatteryTypeSet_4V2); //  设置电池类型为4.2V
+
+    //  内部寄存器设置 设置电池类型
+    writeRegBit(CHG_DIG_CTL4, CHG_DIG_CTL4_BIT_BatteryTypeInternalSet, false);
+    //  设置电池类型为4.2V
+    writeRegBits(Charger_CTL2, Charger_CTL2_BIT_BatteryTypeSet, Charger_CTL2_BIT_BatteryTypeSet_4V2);
+    // 4.2V 电池建议加压 28mV
+    writeRegBits(Charger_CTL2, Charger_CTL2_BIT_ConstantVoltageForcingSet, Charger_CTL2_BIT_ConstantVoltageForcingSet_28MV);
 }
 
 uint8_t IP5108::readReg(REG_t reg)
 {
-    Wire.beginTransmission(Address);
-    Wire.write(reg);
-    Wire.endTransmission();
+    i2c->beginTransmission(Address);
+    i2c->write(reg);
+    i2c->endTransmission();
 
-    Wire.requestFrom(Address, 1);
-    uint8_t value = Wire.read();
-    Wire.endTransmission();
+    i2c->requestFrom(Address, uint8_t(1));
+    uint8_t value = i2c->read();
+    i2c->endTransmission();
 
     return value;
 }
@@ -43,10 +58,10 @@ bool IP5108::readRegBit(REG_t reg, REG_BIT_t bit)
 
 void IP5108::writeReg(REG_t reg, uint8_t val)
 {
-    Wire.beginTransmission(Address);
-    Wire.write(reg);
-    Wire.write(val);
-    Wire.endTransmission();
+    i2c->beginTransmission(Address);
+    i2c->write(reg);
+    i2c->write(val);
+    i2c->endTransmission();
 }
 
 void IP5108::writeRegBit(REG_t reg, REG_BIT_t bit, bool val)
@@ -105,6 +120,7 @@ float IP5108::getBattCurrent()
     return batCur;
 }
 
+// open-circuit voltage
 float IP5108::getBattOcVoltage()
 {
     float outVol;
@@ -121,9 +137,54 @@ float IP5108::getBattOcVoltage()
     return outVol;
 }
 
+void IP5108::getBattState()
+{
+}
+
 void IP5108::update()
 {
     current = getBattCurrent();
     voltage = getBattVoltage();
     voltageOc = getBattOcVoltage();
+}
+
+void IP5108::scan_i2c()
+{
+    byte error, address;
+    int nDevices;
+    Serial.println("Scanning...");
+    nDevices = 0;
+    for (address = 1; address < 127; address++)
+    {
+        i2c->beginTransmission(address);
+        error = i2c->endTransmission();
+        if (error == 0)
+        {
+            Serial.print("I2C device found at address 0x");
+            if (address < 16)
+            {
+                Serial.print("0");
+            }
+            Serial.println(address, HEX);
+            nDevices++;
+        }
+        else if (error == 4)
+        {
+            Serial.print("Unknow error at address 0x");
+            if (address < 16)
+            {
+                Serial.print("0");
+            }
+            Serial.println(address, HEX);
+        }
+    }
+    if (nDevices == 0)
+    {
+        Serial.println("No I2C devices found\n");
+    }
+    else
+    {
+        Serial.println("done\n");
+    }
+    delay(5000);
 }

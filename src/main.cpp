@@ -1,12 +1,15 @@
 #include "file.h"
 #include "tof.h"
+#include "IP5108.h"
 #include "lv_tft.h"
 #include "net_service.h"
 
-TaskHandle_t Task1;
+SKPTOFLIDAR skp1 = SKPTOFLIDAR(&Serial1, 921600, 15, 14); // rx1 15 tx1 14
+SKPTOFLIDAR skp2 = SKPTOFLIDAR(&Serial2, 921600, 16, 17); // rx2 16 tx2 17
 
-SKPTOFLIDAR skp1 = SKPTOFLIDAR(&Serial1, 921600, 15, 14);
-SKPTOFLIDAR skp2 = SKPTOFLIDAR(&Serial2, 921600, 16, 17);
+IP5108 bms = IP5108(&Wire, 21, 22, 400000); // SDA1 21 SCL1 22
+
+TaskHandle_t Task1;
 
 void Task1code(void *pvParameters)
 {
@@ -29,17 +32,14 @@ void setup()
     set_rotary_encoder();
     set_ui();
 
+    // pinMode(21, PULLUP);
+    // pinMode(22, PULLUP);
+
+    bms.set_up();
+
     // set_netsrv();
 
-    // writeConfigFile();
-    // readConfigFile();
-    // Serial.printf("%s %d \r\n", config.hostname, config.limit);
-    // readFile("/config.json");
     listDir("/", 3);
-
-    // ledcSetup(0, 100, 8);
-    // ledcAttachPin(22, 0);
-    // ledcWrite(0, 30);
 
     // xTaskCreatePinnedToCore(
     //     Task1code, /* Task function. */
@@ -54,6 +54,8 @@ void setup()
 void update_ui()
 {
     lv_label_set_text_fmt(cz_label, "当前: %d mm %d mm", skp1.distance, skp2.distance);
+    lv_label_set_text_fmt(battery_level_label, "%d mA %d mV %d mV", (int)round(bms.current), (int)round(bms.voltage), (int)round(bms.voltageOc));
+    // Serial.printf("%d mA %d mV %d mV\r\n", (int)round(bms.current), (int)round(bms.voltage), (int)round(bms.voltageOc));
 }
 
 void loop()
@@ -63,4 +65,6 @@ void loop()
 
     update_ui();
     lv_timer_handler();
+
+    bms.update();
 }

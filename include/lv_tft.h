@@ -11,6 +11,7 @@ extern TFT_eSPI tft;
 
 extern lv_obj_t *cz_label;
 extern lv_obj_t *wifi_label;
+extern lv_obj_t *battery_level_label;
 
 extern void set_rotary_encoder();
 extern void set_disp_drv();

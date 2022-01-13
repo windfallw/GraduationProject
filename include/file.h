@@ -6,6 +6,11 @@
 
 #include <ArduinoJson.h>
 
+// writeConfigFile();
+// readConfigFile();
+// Serial.printf("%s %d \r\n", config.hostname, config.limit);
+// readFile("/config.json");
+
 struct
 {
     char hostname[64];

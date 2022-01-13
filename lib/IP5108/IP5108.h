@@ -1,16 +1,12 @@
 #ifndef __IP5018_H
 #define __IP5018_H
 
+#include "Arduino.h"
 #include "Wire.h"
-
-#define IP5108_DEFATLT_ADDRESS 0x75
 
 class IP5108
 {
-public:
-    IP5108(uint8_t addr = IP5108_DEFATLT_ADDRESS);
-    void begin();
-
+private:
     typedef enum
     {
         SYS_CTL0 = 0x01,
@@ -120,7 +116,7 @@ public:
         00:4.53V
         注：在充电的时候 IC 会检测输出 VOUT
         的电压来自动调整充电电流，当 VOUT 的
-        电压大于设置值时就以最大电流对充电
+        电压大于设置值时就以最大电流对电池
         充电，小于设定值时就自动减小充电电流
         以维持此电压；
         如果客户要求边充边放状态下可在输出
@@ -327,21 +323,28 @@ public:
 
     } REG_BIT_t;
 
-    float current, voltage, voltageOc;
-
     uint8_t readReg(REG_t reg);
     bool readRegBit(REG_t reg, REG_BIT_t bit);
     void writeReg(REG_t reg, uint8_t val);
     void writeRegBit(REG_t reg, REG_BIT_t bit, bool val);
     void writeRegBits(REG_t reg, REG_BIT_t bit, REG_BIT_t val);
 
+public:
+    byte Address;
+    float current, voltage, voltageOc;
+    TwoWire *i2c;
+
+    IP5108(TwoWire *i, int sdaPin, int sclPin, uint32_t frequency);
+    ~IP5108();
+
+    void set_up();
     float getBattVoltage();
     float getBattCurrent();
     float getBattOcVoltage();
-    void update();
+    void getBattState();
 
-private:
-    uint8_t Address;
+    void update();
+    void scan_i2c();
 };
 
 #endif
