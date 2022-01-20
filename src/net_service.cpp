@@ -12,8 +12,8 @@ void rootPage()
 
 void set_netsrv()
 {
-    acConfig.apid = "ESP-" + String((uint32_t)(ESP.getEfuseMac() >> 32), HEX);
-    Serial.println(acConfig.apid);
+    // acConfig.apid = "ESP-" + String((uint32_t)(ESP.getEfuseMac() >> 32), HEX);
+    // Serial.println(acConfig.apid);
     acConfig.psk = "12345678";
     Portal.config(acConfig);
 

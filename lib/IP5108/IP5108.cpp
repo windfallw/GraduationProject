@@ -139,6 +139,19 @@ float IP5108::getBattOcVoltage()
 
 void IP5108::getBattState()
 {
+    // 000: idle¿ÕÏÐ×´Ì¬ 0
+    // 001: ä¸Á÷³äµç×´Ì¬ 32
+    // 010: ºãÁ÷³äµç×´Ì¬ 64
+    // 011: ºãÑ¹³äµç×´Ì¬ 96
+    // 100: ºãÑ¹Í£Ö¹³äµç¼ì²â 128
+    // 101: ³ä±¥×´Ì¬ 160
+    // 110: ³äµç³¬Ê±×´Ì¬ 192
+
+    uint8_t Reg_Byte = readReg(Reg_READ0);
+    uint8_t State_Byte = Reg_Byte & Reg_READ0_BIT_ChargeStatusFlags;
+    bool ChargeFinish = (Reg_Byte & Reg_READ0_BIT_ChargeFinishFlag) == 0 ? false : true;
+    Serial.printf("%d flag\r\n", State_Byte);
+    Serial.println(Reg_Byte);
 }
 
 void IP5108::update()

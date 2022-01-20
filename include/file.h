@@ -10,6 +10,7 @@
 // readConfigFile();
 // Serial.printf("%s %d \r\n", config.hostname, config.limit);
 // readFile("/config.json");
+// listDir("/", 3);
 
 struct
 {
