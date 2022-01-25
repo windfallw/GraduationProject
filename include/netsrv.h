@@ -3,6 +3,7 @@
 
 #include <WiFi.h>
 #include <WebServer.h>
+#include <ArduinoOTA.h>
 #include <AutoConnect.h>
 
 extern WebServer Server;

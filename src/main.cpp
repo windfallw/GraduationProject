@@ -2,15 +2,18 @@
 #include "tof.h"
 #include "IP5108.h"
 #include "lv_tft.h"
-#include "net_service.h"
+#include "netsrv.h"
 
 TaskHandle_t Task1;
-TaskHandle_t Task2;
 
 SKPTOFLIDAR skp1 = SKPTOFLIDAR(&Serial1, 921600, 15, 14); // rx1 15 tx1 14
 SKPTOFLIDAR skp2 = SKPTOFLIDAR(&Serial2, 921600, 16, 17); // rx2 16 tx2 17
 
 IP5108 bms = IP5108(&Wire, 21, 22, 400000); // SDA1 21 SCL1 22
+
+/* pin channel(0-15) resolution(1-16)  freq
+All pins that can act as outputs can be used as PWM pins. */
+shinelight buzzer = shinelight(13, 0, 16, 50000);
 
 void update_ui()
 {
@@ -21,46 +24,33 @@ void update_ui()
 
 void Task1code(void *pvParameters)
 {
-    Serial.printf("Task running on core %d\r\n", xPortGetCoreID());
+    Serial.printf("Task1 running on core %d\r\n", xPortGetCoreID());
     for (;;)
     {
         skp1.read_handler();
         skp2.read_handler();
+        bms.update();
 
         update_ui();
         lv_timer_handler();
-
-        bms.update();
-    }
-}
-
-void Task2code(void *pvParameters)
-{
-    set_netsrv();
-    for (;;)
-    {
-        Portal.handleClient();
     }
 }
 
 void setup()
 {
     Serial.begin(115200);
+    Serial.printf("Arduino Core running on core %d\r\n", xPortGetCoreID());
 
     set_littlefs();
 
     skp1.start();
     skp2.start();
 
+    bms.set_up();
+
     set_disp_drv();
     set_rotary_encoder();
     set_ui();
-
-    bms.set_up();
-
-    // ledcSetup(0, 100, 8);
-    // ledcAttachPin(13, 0);
-    // ledcWrite(0, 30);
 
     xTaskCreatePinnedToCore(
         Task1code, /* Task function. */
@@ -71,17 +61,10 @@ void setup()
         &Task1,    /* Task handle to keep track of created task */
         0);        /* pin task to core 0 */
 
-    xTaskCreatePinnedToCore(
-        Task2code,                       /* Task function. */
-        "Task2",                         /* name of task. */
-        10240,                           /* Stack size of task */
-        NULL,                            /* parameter of the task */
-        1,                               /* priority of the task */
-        &Task2,                          /* Task handle to keep track of created task */
-        CONFIG_ARDUINO_EVENT_RUN_CORE1); /* pin task to core 1 */
+    set_netsrv();
 }
 
 void loop()
 {
-    return;
+    Portal.handleClient();
 }

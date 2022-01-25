@@ -1,6 +1,47 @@
 #include "HardwareSerial.h"
 #include "tof.h"
 
+shinelight::shinelight(uint8_t pin, uint8_t channel, uint8_t resolution, double freq) : pin(pin), channel(channel), resolution(resolution), freq(freq)
+{
+    set_up();
+}
+
+shinelight::~shinelight()
+{
+    ledcDetachPin(pin);
+}
+
+void shinelight::set_up()
+{
+    ledcDetachPin(pin);
+    ledcSetup(channel, freq, resolution);
+    ledcWrite(channel, 0);
+    ledcAttachPin(pin, channel);
+}
+
+void shinelight::write(uint16_t dutyCycle)
+{
+    ledcWrite(channel, dutyCycle);
+}
+
+void shinelight::fade_test()
+{
+    uint16_t dutyCycle = 0;
+    while (dutyCycle < 0xffff)
+    {
+        dutyCycle++;
+        ledcWrite(channel, dutyCycle);
+    }
+
+    while (dutyCycle > 0)
+    {
+        dutyCycle--;
+        ledcWrite(channel, dutyCycle);
+    }
+}
+
+// below are ToF LiDAR Part
+
 const char
     crcTable[] = {0, 49, 98, 83, 196, 245, 166, 151, 185, 136, 219, 234, 125, 76, 31, 46, 67, 114, 33, 16, 135, 182, 229, 212,
                   250, 203, 152, 169, 62, 15, 92, 109, 134, 183, 228, 213, 66, 115, 32, 17, 63, 14, 93, 108, 251, 202, 153, 168,

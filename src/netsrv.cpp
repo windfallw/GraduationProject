@@ -1,4 +1,4 @@
-#include "net_service.h"
+#include "netsrv.h"
 
 WebServer Server;
 AutoConnect Portal(Server);
@@ -12,8 +12,10 @@ void rootPage()
 
 void set_netsrv()
 {
-    // acConfig.apid = "ESP-" + String((uint32_t)(ESP.getEfuseMac() >> 32), HEX);
-    // Serial.println(acConfig.apid);
+    String id = String((uint32_t)ESP.getEfuseMac(), HEX);
+    id.toUpperCase();
+    acConfig.apid = "ESP-" + id;
+    Serial.println(acConfig.apid);
     acConfig.psk = "12345678";
     Portal.config(acConfig);
 

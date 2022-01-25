@@ -1,26 +1,35 @@
 #ifndef TOFH
 #define TOFH
 
-// #define RX1 15
-// #define TX1 14
-// #define RX2 16
-// #define TX2 17
+// use npn mosfet  ctrl light & buzzer
+class shinelight
+{
+public:
+    uint8_t pin;
+    uint8_t channel;
+    uint8_t resolution;
+    double freq;
 
-// ledcSetup(0, 100, 8);
-// ledcAttachPin(13, 0);
-// ledcWrite(0, 30);
+    shinelight(uint8_t pin, uint8_t channel, uint8_t resolution, double freq);
+    ~shinelight();
 
+    void set_up();
+    void write(uint16_t dutyCycle);
+
+    void fade_test();
+};
+
+// RX1->15 TX1->14   RX2->16 TX2->17
 class SKPTOFLIDAR
 {
 private:
 public:
-    SKPTOFLIDAR(HardwareSerial *u, u_long baudrate, int8_t rx, int8_t tx);
-    ~SKPTOFLIDAR();
-
     HardwareSerial *uart;
-
     uint8_t buffs[8] = {};
     uint32_t distance = 0;
+
+    SKPTOFLIDAR(HardwareSerial *u, u_long baudrate, int8_t rx, int8_t tx);
+    ~SKPTOFLIDAR();
 
     void start();
     void stop();
