@@ -1,5 +1,7 @@
 #include "file.h"
 
+#include "ArduinoJson.h"
+
 #define FORMAT_LITTLEFS_IF_FAILED true
 #define CONFIG_FILE "/config.json"
 

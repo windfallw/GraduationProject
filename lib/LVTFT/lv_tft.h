@@ -2,8 +2,8 @@
 #define LVTFTH
 
 #include "AiEsp32RotaryEncoder.h"
-#include <lvgl.h>
-#include <TFT_eSPI.h>
+#include "lvgl.h"
+#include "TFT_eSPI.h"
 
 extern AiEsp32RotaryEncoder rotaryEncoder;
 

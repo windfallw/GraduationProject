@@ -39,9 +39,12 @@ void Task1code(void *pvParameters)
 void setup()
 {
     Serial.begin(115200);
+    Serial.setDebugOutput(true);
+
     Serial.printf("Arduino Core running on core %d\r\n", xPortGetCoreID());
 
     set_littlefs();
+    listDir("/", 3);
 
     skp1.start();
     skp2.start();
@@ -62,9 +65,11 @@ void setup()
         0);        /* pin task to core 0 */
 
     set_netsrv();
+    Serial.println("setup done");
 }
 
 void loop()
 {
-    Portal.handleClient();
+    ArduinoOTA.handle();
+    ws.cleanupClients();
 }

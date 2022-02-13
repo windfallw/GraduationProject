@@ -1,6 +1,8 @@
 #ifndef TOFH
 #define TOFH
 
+#include <Arduino.h>
+
 // use npn mosfet  ctrl light & buzzer
 class shinelight
 {

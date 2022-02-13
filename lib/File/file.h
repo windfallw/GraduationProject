@@ -1,10 +1,8 @@
 #ifndef FILEH
 #define FILEH
 
-#include "FS.h"
-#include <LITTLEFS.h>
-
-#include <ArduinoJson.h>
+#include <Arduino.h>
+#include "LITTLEFS.h"
 
 // writeConfigFile();
 // readConfigFile();

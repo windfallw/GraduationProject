@@ -1,4 +1,3 @@
-#include "HardwareSerial.h"
 #include "tof.h"
 
 shinelight::shinelight(uint8_t pin, uint8_t channel, uint8_t resolution, double freq) : pin(pin), channel(channel), resolution(resolution), freq(freq)

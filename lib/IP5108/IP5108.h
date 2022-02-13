@@ -1,8 +1,8 @@
 #ifndef __IP5018_H
 #define __IP5018_H
 
-#include "Arduino.h"
-#include "Wire.h"
+#include <Arduino.h>
+#include <Wire.h>
 
 class IP5108
 {
