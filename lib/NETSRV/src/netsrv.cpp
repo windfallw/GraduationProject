@@ -7,110 +7,79 @@ const char *sta_password = "";
 const char *ap_ssid = "ESP32_AP";
 const char *ap_password = "12345678";
 
-const char *hostname = "ESP-test";
+const char *hostname = "esptest";
 
 AsyncWebServer server(80);
 AsyncElegantOtaClass AsyncElegantOTA;
 
-AsyncWebSocket ws("/ws");
-AsyncEventSource events("/events");
-
-void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
+void get_baseinfo()
 {
-    if (type == WS_EVT_CONNECT)
+    uint32_t chipId = 0;
+    for (int i = 0; i < 17; i = i + 8)
     {
-        Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
-        client->printf("Hello Client %u :)", client->id());
-        client->ping();
+        chipId |= ((ESP.getEfuseMac() >> (40 - i)) & 0xff) << i;
     }
-    else if (type == WS_EVT_DISCONNECT)
-    {
-        Serial.printf("ws[%s][%u] disconnect\n", server->url(), client->id());
-    }
-    else if (type == WS_EVT_ERROR)
-    {
-        Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
-    }
-    else if (type == WS_EVT_PONG)
-    {
-        Serial.printf("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len) ? (char *)data : "");
-    }
-    else if (type == WS_EVT_DATA)
-    {
-        AwsFrameInfo *info = (AwsFrameInfo *)arg;
-        String msg = "";
-        if (info->final && info->index == 0 && info->len == len)
+    Serial.printf("ESP32 Chip model = %s Rev %d\n", ESP.getChipModel(), ESP.getChipRevision());
+    Serial.printf("This chip has %d cores\n", ESP.getChipCores());
+    Serial.print("Chip ID: ");
+    Serial.println(chipId);
+
+    Serial.println(ArduinoOTA.getHostname());
+}
+
+void set_OTA()
+{
+    ArduinoOTA.onStart(
+        []()
         {
-            // the whole message is in a single frame and we got all of it's data
-            Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
-
-            if (info->opcode == WS_TEXT)
+            String type = "unknown";
+            switch (ArduinoOTA.getCommand())
             {
-                for (size_t i = 0; i < info->len; i++)
-                {
-                    msg += (char)data[i];
-                }
+            case U_FLASH:
+                type = "sketch";
+                break;
+            case U_SPIFFS:
+                type = "filesystem";
+                LITTLEFS.end();
+                break;
+            default:
+                break;
             }
-            else
-            {
-                char buff[3];
-                for (size_t i = 0; i < info->len; i++)
-                {
-                    sprintf(buff, "%02x ", (uint8_t)data[i]);
-                    msg += buff;
-                }
-            }
-            Serial.printf("%s\n", msg.c_str());
+            Serial.println("Start updating " + type);
+        });
 
-            if (info->opcode == WS_TEXT)
-                client->text("I got your text message");
-            else
-                client->binary("I got your binary message");
-        }
-        else
+    ArduinoOTA.onEnd(
+        []()
         {
-            // message is comprised of multiple frames or the frame is split into multiple packets
-            if (info->index == 0)
-            {
-                if (info->num == 0)
-                    Serial.printf("ws[%s][%u] %s-message start\n", server->url(), client->id(), (info->message_opcode == WS_TEXT) ? "text" : "binary");
-                Serial.printf("ws[%s][%u] frame[%u] start[%llu]\n", server->url(), client->id(), info->num, info->len);
-            }
+            Serial.println("Update End");
+        });
 
-            Serial.printf("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", server->url(), client->id(), info->num, (info->message_opcode == WS_TEXT) ? "text" : "binary", info->index, info->index + len);
+    ArduinoOTA.onProgress(
+        [](unsigned int progress, unsigned int total)
+        {
+            // printf("Progress: %u%%\n", (progress / (total / 100)));
+        });
 
-            if (info->opcode == WS_TEXT)
-            {
-                for (size_t i = 0; i < len; i++)
-                {
-                    msg += (char)data[i];
-                }
-            }
-            else
-            {
-                char buff[3];
-                for (size_t i = 0; i < len; i++)
-                {
-                    sprintf(buff, "%02x ", (uint8_t)data[i]);
-                    msg += buff;
-                }
-            }
-            Serial.printf("%s\n", msg.c_str());
+    ArduinoOTA.onError(
+        [](ota_error_t error)
+        {
+            if (error == OTA_AUTH_ERROR)
+                Serial.println("Auth Failed");
+            else if (error == OTA_BEGIN_ERROR)
+                Serial.println("Begin Failed");
+            else if (error == OTA_CONNECT_ERROR)
+                Serial.println("Connect Failed");
+            else if (error == OTA_RECEIVE_ERROR)
+                Serial.println("Recieve Failed");
+            else if (error == OTA_END_ERROR)
+                Serial.println("End Failed");
+        });
 
-            if ((info->index + len) == info->len)
-            {
-                Serial.printf("ws[%s][%u] frame[%u] end[%llu]\n", server->url(), client->id(), info->num, info->len);
-                if (info->final)
-                {
-                    Serial.printf("ws[%s][%u] %s-message end\n", server->url(), client->id(), (info->message_opcode == WS_TEXT) ? "text" : "binary");
-                    if (info->message_opcode == WS_TEXT)
-                        client->text("I got your text message");
-                    else
-                        client->binary("I got your binary message");
-                }
-            }
-        }
-    }
+    ArduinoOTA.setPort(3232);
+    ArduinoOTA.setHostname(hostname);
+    ArduinoOTA.begin();
+
+    MDNS.addService("http", "tcp", 80);
 }
 
 void set_netsrv()
@@ -119,70 +88,22 @@ void set_netsrv()
     // WiFi.softAP(ap_ssid, ap_password);
     WiFi.begin(sta_ssid, sta_password);
 
-    while (WiFi.status() != WL_CONNECTED)
+    if (WiFi.waitForConnectResult() != WL_CONNECTED)
     {
-        delay(500);
-        Serial.print(".");
+        Serial.printf("STA: Failed!\n");
+        return;
     }
+
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
 
-    ArduinoOTA.onStart(
-        []()
-        {
-            events.send("Update Start", "ota");
-        });
+    set_OTA();
 
-    ArduinoOTA.onEnd(
-        []()
-        {
-            events.send("Update End", "ota");
-        });
+    server.addHandler(new SPIFFSEditor(LITTLEFS, "", ""));
 
-    ArduinoOTA.onProgress(
-        [](unsigned int progress, unsigned int total)
-        {
-            char p[32];
-            sprintf(p, "Progress: %u%%\n", (progress / (total / 100)));
-            events.send(p, "ota");
-        });
+    AsyncElegantOTA.begin(&server);
 
-    ArduinoOTA.onError(
-        [](ota_error_t error)
-        {
-            if (error == OTA_AUTH_ERROR)
-                events.send("Auth Failed", "ota");
-            else if (error == OTA_BEGIN_ERROR)
-                events.send("Begin Failed", "ota");
-            else if (error == OTA_CONNECT_ERROR)
-                events.send("Connect Failed", "ota");
-            else if (error == OTA_RECEIVE_ERROR)
-                events.send("Recieve Failed", "ota");
-            else if (error == OTA_END_ERROR)
-                events.send("End Failed", "ota");
-        });
-
-    ArduinoOTA.setHostname(hostname);
-    ArduinoOTA.begin();
-
-    MDNS.addService("http", "tcp", 80);
-
-    ws.onEvent(onWsEvent);
-    server.addHandler(&ws);
-
-    events.onConnect([](AsyncEventSourceClient *client)
-                     { client->send("hello!", NULL, millis(), 1000); });
-
-    server.addHandler(&events);
-
-    // server.addHandler(new SPIFFSEditor(LITTLEFS, "", ""));
-
-    server.on("/heap", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send(200, "text/plain", String(ESP.getFreeHeap())); });
-
-    AsyncElegantOTA.begin(&server); // Start ElegantOTA
-
-    server.serveStatic("/", LITTLEFS, "/").setDefaultFile("index.htm");
+    server.serveStatic("/", LITTLEFS, "/").setDefaultFile("index.html");
 
     server.onNotFound(
         [](AsyncWebServerRequest *request)

@@ -1,16 +1,20 @@
 #include "file.h"
-
 #include "ArduinoJson.h"
 
 #define FORMAT_LITTLEFS_IF_FAILED true
-#define CONFIG_FILE "/config.json"
+#define CONFIG_LITTLEFS_SPIFFS_COMPAT false
+#define CONFIG_LITTLEFS_CACHE_SIZE 512
+
+const char *config_file_path = "/config.json";
 
 void set_littlefs()
 {
     if (!LITTLEFS.begin(FORMAT_LITTLEFS_IF_FAILED))
     {
-        Serial.println("LITTLEFS Mount Failed");
+        Serial.println(F("LITTLEFS Mount Failed"));
+        return;
     }
+    readConfigFile();
 }
 
 void listDir(const char *dirname, uint8_t levels)
@@ -56,34 +60,6 @@ void listDir(const char *dirname, uint8_t levels)
     }
 }
 
-bool readConfigFile()
-{
-    if (!LITTLEFS.exists(CONFIG_FILE))
-        return false;
-
-    File file = LITTLEFS.open(CONFIG_FILE, "r");
-
-    StaticJsonDocument<512> doc;
-
-    DeserializationError error = deserializeJson(doc, file);
-
-    file.close();
-
-    if (error)
-    {
-        Serial.println(F("Failed to read file, using default configuration"));
-        return false;
-    }
-
-    config.limit = doc["limit"];
-
-    strlcpy(config.hostname,                 // <- destination
-            doc["hostname"] | "example.com", // <- source
-            sizeof(config.hostname));        // <- destination's capacity
-
-    return true;
-}
-
 void readFile(const char *path)
 {
     Serial.printf("Reading file: %s\r\n", path);
@@ -105,29 +81,88 @@ void readFile(const char *path)
     file.close();
 }
 
-bool writeConfigFile()
+void writeFile(const char *path, const char *message)
 {
-    Serial.println("Saving config file");
+    Serial.printf("Writing file: %s\r\n", path);
 
-    File file = LITTLEFS.open(CONFIG_FILE, "w");
+    File file = LITTLEFS.open(path, FILE_WRITE);
+    if (!file)
+    {
+        Serial.println("- failed to open file for writing");
+        return;
+    }
+    if (file.print(message))
+    {
+        Serial.println("- file written");
+    }
+    else
+    {
+        Serial.println("- write failed");
+    }
+    file.close();
+}
 
+void readConfigFile()
+{
+    // only use once in system setup.
+    if (!LITTLEFS.exists(config_file_path))
+    {
+        writeConfigFile();
+        Serial.printf("%s created\r\n", config_file_path);
+        return;
+    }
+
+    StaticJsonDocument<1024> doc;
+    File file = LITTLEFS.open(config_file_path, "r");
+    DeserializationError error = deserializeJson(doc, file);
+    file.close();
+
+    if (error)
+    {
+        Serial.printf("Failed to read %s, deleting...\r\n", config_file_path);
+        if (LITTLEFS.remove(config_file_path))
+        {
+            Serial.println(F("file deleted, rebooting...\r\n"));
+        }
+        else
+        {
+            Serial.println(F("delete failed, rebooting...\r\n"));
+        }
+        yield();
+        delay(1000);
+        yield();
+        ESP.restart();
+        return;
+    }
+
+    config.limit = doc["limit"] | 1000;
+    strlcpy(config.hostname,                 // <- destination
+            doc["hostname"] | "example.com", // <- source
+            sizeof(config.hostname));        // <- destination's capacity
+
+    serializeJsonPretty(doc, Serial);
+    // Serial.printf("%s %d \r\n", config.hostname, config.limit);
+    // listDir("/", 3);
+}
+
+void writeConfigFile()
+{
+    File file = LITTLEFS.open(config_file_path, "w");
     if (!file)
     {
         Serial.println(F("Failed to open config file for writing"));
-        return false;
+        return;
     }
 
-    StaticJsonDocument<512> doc;
-
+    StaticJsonDocument<1024> doc;
     doc["limit"] = config.limit;
     doc["hostname"] = config.hostname;
 
-    if (serializeJson(doc, file) == 0)
+    if (!serializeJson(doc, file))
     {
-        Serial.println(F("Failed to write to file"));
+        Serial.println(F("serializeJson Failed"));
     }
 
     file.close();
-
-    return true;
+    return;
 }

@@ -4,12 +4,6 @@
 #include <Arduino.h>
 #include "LITTLEFS.h"
 
-// writeConfigFile();
-// readConfigFile();
-// Serial.printf("%s %d \r\n", config.hostname, config.limit);
-// readFile("/config.json");
-// listDir("/", 3);
-
 struct
 {
     char hostname[64];
@@ -18,8 +12,9 @@ struct
 
 extern void set_littlefs();
 extern void listDir(const char *dirname, uint8_t levels);
-extern void readFile(const char *filename);
-extern bool readConfigFile();
-extern bool writeConfigFile();
+extern void readFile(const char *path);
+extern void writeFile(const char *path);
+extern void readConfigFile();
+extern void writeConfigFile();
 
 #endif

@@ -44,7 +44,6 @@ void setup()
     Serial.printf("Arduino Core running on core %d\r\n", xPortGetCoreID());
 
     set_littlefs();
-    listDir("/", 3);
 
     skp1.start();
     skp2.start();
@@ -71,5 +70,4 @@ void setup()
 void loop()
 {
     ArduinoOTA.handle();
-    ws.cleanupClients();
 }

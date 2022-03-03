@@ -5,15 +5,12 @@
 #include <ESPmDNS.h>
 #include <ArduinoOTA.h>
 #include <Update.h>
-// #include <esp_int_wdt.h>
-// #include <esp_task_wdt.h>
 
 #include "AsyncTCP.h"
 #include "ESPAsyncWebServer.h"
-#include "elegantWebpage.h"
 #include "SPIFFSEditor.h"
 
-extern AsyncWebSocket ws;
+#include "elegantWebpage.h"
 
 class AsyncElegantOtaClass
 {

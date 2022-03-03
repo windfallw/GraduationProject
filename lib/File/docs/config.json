@@ -1,0 +1,33 @@
+{
+    "wifi": {
+        "station": [
+            {
+                "ssid": "example1",
+                "password": "password1"
+            },
+            {
+                "ssid": "example2",
+                "password": "password2"
+            },
+            {
+                "ssid": "example3",
+                "password": "password3"
+            }
+        ],
+        "ap": {
+            "essid": "esp32ap",
+            "password": "12345678"
+        }
+    },
+    "alarm": {
+        "tof1": 1000,
+        "tof2": 1000,
+        "ms": 500
+    },
+    "mqtt": {
+        "subscribe": "server-publish",
+        "publish": "client-submit",
+        "server": "example.com",
+        "port": 1883
+    }
+}
