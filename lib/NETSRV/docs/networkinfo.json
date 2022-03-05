@@ -1,0 +1,37 @@
+{
+    "sta": {
+        "network": {
+            "ip": "192.168.1.2",
+            "subnetMask": "255.255.255.0",
+            "gateway": "192.168.1.1",
+            "dns": "192.168.1.1"
+        },
+        "ssid": "hi",
+        "rssi": -64,
+        "status": 3,
+        "mac": "XX:XX:XX:XX:XX:XX",
+        "isconnect": true
+    },
+    "ap": {
+        "network": {
+            "ip": "192.168.4.1",
+            "SubnetCIDR": 24
+        },
+        "APNetworkID": "192.168.4.0",
+        "BroadcastIP": "192.168.4.255",
+        "ssid": "ESPXXXX",
+        "StationNum": 0,
+        "hostname": "espressif",
+        "mac": "XX:XX:XX:XX:XX:XX"
+    },
+    "heap": 176160,
+    "scan": [
+        {
+            "rssi": "-65",
+            "ssid": "hi",
+            "bssid": "XX:XX:XX:XX:XX:XX",
+            "channel": "7",
+            "secure": "4"
+        }
+    ]
+}

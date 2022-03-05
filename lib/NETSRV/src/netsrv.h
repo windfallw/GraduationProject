@@ -6,6 +6,9 @@
 #include <ArduinoOTA.h>
 #include <Update.h>
 
+#include "file.h"
+
+#include "AsyncJson.h"
 #include "AsyncTCP.h"
 #include "ESPAsyncWebServer.h"
 #include "SPIFFSEditor.h"
@@ -17,6 +20,12 @@ class AsyncElegantOtaClass
 private:
     AsyncWebServer *_server;
 
+    String _id = getID();
+    String _username = "";
+    String _password = "";
+    bool _authRequired = false;
+
+public:
     String getID()
     {
         String id = "";
@@ -25,12 +34,6 @@ private:
         return id;
     }
 
-    String _id = getID();
-    String _username = "";
-    String _password = "";
-    bool _authRequired = false;
-
-public:
     void setID(const char *id)
     {
         _id = id;

@@ -1,33 +1,14 @@
 #include "netsrv.h"
-#include "file.h"
 
 const char *sta_ssid = "";
 const char *sta_password = "";
 
-const char *ap_ssid = "ESP32_AP";
-const char *ap_password = "12345678";
-
-const char *hostname = "esptest";
-
 AsyncWebServer server(80);
 AsyncElegantOtaClass AsyncElegantOTA;
 
-void get_baseinfo()
-{
-    uint32_t chipId = 0;
-    for (int i = 0; i < 17; i = i + 8)
-    {
-        chipId |= ((ESP.getEfuseMac() >> (40 - i)) & 0xff) << i;
-    }
-    Serial.printf("ESP32 Chip model = %s Rev %d\n", ESP.getChipModel(), ESP.getChipRevision());
-    Serial.printf("This chip has %d cores\n", ESP.getChipCores());
-    Serial.print("Chip ID: ");
-    Serial.println(chipId);
+constexpr const char *TEXT_MIMETYPE = "text/plain";
 
-    Serial.println(ArduinoOTA.getHostname());
-}
-
-void set_OTA()
+void set_OTA(char *hostname)
 {
     ArduinoOTA.onStart(
         []()
@@ -84,20 +65,103 @@ void set_OTA()
 
 void set_netsrv()
 {
-    WiFi.mode(WIFI_STA); // WIFI_STA WIFI_OFF
-    // WiFi.softAP(ap_ssid, ap_password);
-    WiFi.begin(sta_ssid, sta_password);
+    WiFi.mode(WIFI_AP_STA); // WIFI_STA WIFI_OFF
 
+    WiFi.softAP(cg.ap.ssid.c_str(), cg.ap.pwd.c_str());
+
+    WiFi.scanNetworks();
+
+    WiFi.begin(sta_ssid, sta_password);
     if (WiFi.waitForConnectResult() != WL_CONNECTED)
     {
         Serial.printf("STA: Failed!\n");
         return;
     }
 
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
+    Serial.printf("IP address: %s\r\n", WiFi.localIP().toString().c_str());
 
-    set_OTA();
+    set_OTA(cg.convert(cg.ap.ssid));
+
+    server.on("/machine", HTTP_POST,
+              [](AsyncWebServerRequest *request)
+              {
+                  AsyncWebParameter *p = request->getParam(0);
+                  if (p == nullptr)
+                      return request->send(400, TEXT_MIMETYPE, "no param");
+                  if (p->value() == "reset")
+                  {
+                      AsyncWebServerResponse *response = request->beginResponse(200, TEXT_MIMETYPE, p->value());
+                      response->addHeader("Server", "ESP32WebServer");
+                      request->send(response);
+                      AsyncElegantOTA.restart();
+                  }
+                  else if (p->value() == "scan")
+                  {
+                      WiFi.scanNetworks(true);
+                      AsyncWebServerResponse *response = request->beginResponse(200, TEXT_MIMETYPE, p->value());
+                      response->addHeader("Server", "ESP32WebServer");
+                      request->send(response);
+                  }
+                  else
+                      return request->send(400, TEXT_MIMETYPE, "unknown param");
+              });
+
+    server.on("/networkinfo", HTTP_GET,
+              [](AsyncWebServerRequest *request)
+              {
+                  AsyncJsonResponse *response = new AsyncJsonResponse(false, 4096);
+                  response->addHeader("Server", "ESP32WebServer");
+                  JsonVariant &root = response->getRoot();
+
+                  root["heap"] = ESP.getFreeHeap();
+
+                  JsonObject sta = root.createNestedObject("sta");
+                  JsonObject sta_network = sta.createNestedObject("network");
+                  sta_network["ip"] = WiFi.localIP().toString();
+                  sta_network["subnetMask"] = WiFi.subnetMask().toString();
+                  sta_network["gateway"] = WiFi.gatewayIP().toString();
+                  sta_network["dns"] = WiFi.dnsIP().toString();
+
+                  sta["ssid"] = WiFi.SSID();
+                  sta["rssi"] = WiFi.RSSI();
+                  sta["status"] = WiFi.status();
+                  sta["mac"] = WiFi.macAddress();
+                  sta["isconnect"] = WiFi.isConnected();
+
+                  JsonObject ap = root.createNestedObject("ap");
+                  JsonObject ap_network = ap.createNestedObject("network");
+                  ap_network["ip"] = WiFi.softAPIP().toString();
+                  ap_network["SubnetCIDR"] = WiFi.softAPSubnetCIDR();
+
+                  ap["APNetworkID"] = WiFi.softAPNetworkID().toString();
+                  ap["BroadcastIP"] = WiFi.softAPBroadcastIP().toString();
+                  ap["ssid"] = WiFi.softAPSSID();
+                  ap["StationNum"] = WiFi.softAPgetStationNum();
+                  ap["hostname"] = WiFi.softAPgetHostname();
+                  ap["mac"] = WiFi.softAPmacAddress();
+
+                  JsonArray scan = root.createNestedArray("scan");
+                  int n = WiFi.scanComplete();
+
+                  for (int i = 0; i < n; i++)
+                  {
+                      JsonObject scan_item = scan.createNestedObject();
+                      scan_item["rssi"] = String(WiFi.RSSI(i));
+                      scan_item["ssid"] = WiFi.SSID(i);
+                      scan_item["bssid"] = WiFi.BSSIDstr(i);
+                      scan_item["channel"] = String(WiFi.channel(i));
+                      scan_item["secure"] = String(WiFi.encryptionType(i));
+                  }
+
+                  response->setLength();
+                  request->send(response);
+              });
+
+    server.on("/sysinfo", HTTP_GET,
+              [](AsyncWebServerRequest *request)
+              {
+                  return request->send(200, JSON_MIMETYPE, cg.stream);
+              });
 
     server.addHandler(new SPIFFSEditor(LITTLEFS, "", ""));
 
@@ -184,5 +248,6 @@ void set_netsrv()
 
     server.begin();
 
-    Serial.println("HTTP server started");
+    Serial.print(F("HTTP server started -> "));
+    Serial.printf("http://%s.local\r\n", cg.ap.ssid.c_str());
 }

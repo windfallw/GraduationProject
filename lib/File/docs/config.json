@@ -1,22 +1,22 @@
 {
     "wifi": {
-        "station": [
+        "sta": [
             {
                 "ssid": "example1",
-                "password": "password1"
+                "pwd": "password1"
             },
             {
                 "ssid": "example2",
-                "password": "password2"
+                "pwd": "password2"
             },
             {
                 "ssid": "example3",
-                "password": "password3"
+                "pwd": "password3"
             }
         ],
         "ap": {
-            "essid": "esp32ap",
-            "password": "12345678"
+            "ssid": "esp32ap",
+            "pwd": "12345678"
         }
     },
     "alarm": {
