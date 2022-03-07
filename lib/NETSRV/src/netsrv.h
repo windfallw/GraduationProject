@@ -15,7 +15,17 @@
 
 #include "elegantWebpage.h"
 
+struct conn_t
+{
+    String ssid;
+    String pwd;
+    bool YES = false;
+};
+
+extern struct conn_t I_WANT_CONN;
+
 class AsyncElegantOtaClass
+
 {
 private:
     AsyncWebServer *_server;
@@ -169,6 +179,9 @@ public:
             });
     }
 };
+
+extern bool conn_wifi(bool scan = false);
+extern bool conn_wifi(String ssid, String pwd);
 
 extern void set_netsrv();
 

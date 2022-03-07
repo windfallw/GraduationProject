@@ -63,11 +63,19 @@ void setup()
         &Task1,    /* Task handle to keep track of created task */
         0);        /* pin task to core 0 */
 
-    set_netsrv();
+    set_netsrv(); // try connect wifi & set up AP&OTA&Webserver
     Serial.println("setup done");
 }
 
 void loop()
 {
     ArduinoOTA.handle();
+    if (I_WANT_CONN.YES)
+    {
+        if (!conn_wifi(I_WANT_CONN.ssid, I_WANT_CONN.pwd))
+        {
+            conn_wifi(false); // connect fail rollback to known wifi.
+        }
+        I_WANT_CONN.YES = false;
+    }
 }

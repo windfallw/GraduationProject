@@ -1,12 +1,10 @@
 #include "netsrv.h"
 
-const char *sta_ssid = "";
-const char *sta_password = "";
-
 AsyncWebServer server(80);
 AsyncElegantOtaClass AsyncElegantOTA;
 
 constexpr const char *TEXT_MIMETYPE = "text/plain";
+struct conn_t I_WANT_CONN;
 
 void set_OTA(char *hostname)
 {
@@ -63,24 +61,99 @@ void set_OTA(char *hostname)
     MDNS.addService("http", "tcp", 80);
 }
 
+/* connect to the known wifi in config file
+ scan = true to scan for wifi before matching the known wifi*/
+bool conn_wifi(bool scan)
+{
+    int num;
+    if (scan)
+        num = WiFi.scanNetworks();
+    else
+        num = WiFi.scanComplete();
+
+    for (int i = 0; i < num; ++i)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            if (WiFi.SSID(i).equals(cg.sta[j].ssid))
+            {
+                if (conn_wifi(cg.sta[j].ssid, cg.sta[j].pwd))
+                    return true;
+            }
+        }
+    }
+    return false;
+}
+
+/*just connect to the wifi with variable ssid and pwd
+if success save the ssid and pwd to config file
+the maximum number of known wifi in config file is 3*/
+bool conn_wifi(String ssid, String pwd)
+{
+    WiFi.disconnect();
+    WiFi._setStatus(WL_DISCONNECTED);
+    WiFi.begin(ssid.c_str(), pwd.c_str());
+    if (WiFi.waitForConnectResult() != WL_CONNECTED)
+    {
+        Serial.printf("STA: Connect to SSID: %s with PWD: %s Failed!\n", ssid.c_str(), pwd.c_str());
+        return false;
+    }
+    else
+    {
+        Serial.printf("STA: Connection successful to %s\r\nIP address: %s\n", ssid.c_str(), WiFi.localIP().toString().c_str());
+
+        for (int i = 0; i < 3; i++)
+            // if exists in config file, not save
+            if (cg.sta[i].ssid == ssid)
+                return true;
+
+        cg.sta[2].ssid = cg.sta[1].ssid;
+        cg.sta[2].pwd = cg.sta[1].pwd;
+        cg.sta[1].ssid = cg.sta[0].ssid;
+        cg.sta[1].pwd = cg.sta[0].pwd;
+        cg.sta[0].ssid = ssid;
+        cg.sta[0].pwd = pwd;
+        writeConfigFile();
+        return true;
+    }
+}
+
 void set_netsrv()
 {
     WiFi.mode(WIFI_AP_STA); // WIFI_STA WIFI_OFF
 
-    WiFi.softAP(cg.ap.ssid.c_str(), cg.ap.pwd.c_str());
-
-    WiFi.scanNetworks();
-
-    WiFi.begin(sta_ssid, sta_password);
-    if (WiFi.waitForConnectResult() != WL_CONNECTED)
+    if (conn_wifi(true)) // scan before connect
     {
-        Serial.printf("STA: Failed!\n");
-        return;
+        Serial.printf("http://%s\n", WiFi.localIP().toString().c_str());
+        Serial.printf("http://%s.local\n", cg.ap.ssid.c_str());
     }
 
-    Serial.printf("IP address: %s\r\n", WiFi.localIP().toString().c_str());
-
     set_OTA(cg.convert(cg.ap.ssid));
+
+    // int params = request->params();
+    // for (int i = 0; i < params; i++)
+    // {
+    //     AsyncWebParameter *p = request->getParam(i);
+    //     Serial.printf("_POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
+    // }
+
+    server.on("/postwifi", HTTP_POST,
+              [](AsyncWebServerRequest *request)
+              {
+                  String ssid = request->arg("ssid");
+                  String pwd = request->arg("pwd");
+                  if (I_WANT_CONN.YES)
+                  {
+                      request->send(200, TEXT_MIMETYPE, "PLZ WAITING...");
+                  }
+                  else
+                  {
+                      request->send(200, TEXT_MIMETYPE, "CMD RECEIVED! Executing...");
+                      I_WANT_CONN.ssid = ssid;
+                      I_WANT_CONN.pwd = pwd;
+                      I_WANT_CONN.YES = true;
+                  }
+              });
 
     server.on("/machine", HTTP_POST,
               [](AsyncWebServerRequest *request)
@@ -97,7 +170,9 @@ void set_netsrv()
                   }
                   else if (p->value() == "scan")
                   {
-                      WiFi.scanNetworks(true);
+                      if (!I_WANT_CONN.YES)
+                          // avoid scan and conn at the same time!
+                          WiFi.scanNetworks(true);
                       AsyncWebServerResponse *response = request->beginResponse(200, TEXT_MIMETYPE, p->value());
                       response->addHeader("Server", "ESP32WebServer");
                       request->send(response);
@@ -248,6 +323,8 @@ void set_netsrv()
 
     server.begin();
 
-    Serial.print(F("HTTP server started -> "));
-    Serial.printf("http://%s.local\r\n", cg.ap.ssid.c_str());
+    WiFi.softAP(cg.ap.ssid.c_str(), cg.ap.pwd.c_str()); // WiFi.softAPdisconnect(true);
+    WiFi.softAPsetHostname(cg.ap.ssid.c_str());
+    Serial.printf("AP started SSID -> %s\n", WiFi.softAPSSID().c_str());
+    Serial.printf("http://%s\n", WiFi.softAPIP().toString().c_str());
 }
