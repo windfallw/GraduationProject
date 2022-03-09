@@ -70,11 +70,13 @@ void setup()
 void loop()
 {
     ArduinoOTA.handle();
+    dnsServer.processNextRequest();
     if (I_WANT_CONN.YES)
     {
         if (!conn_wifi(I_WANT_CONN.ssid, I_WANT_CONN.pwd))
         {
-            conn_wifi(false); // connect fail rollback to known wifi.
+            // connect fail rollback to known wifi.
+            conn_wifi(false);
         }
         I_WANT_CONN.YES = false;
     }

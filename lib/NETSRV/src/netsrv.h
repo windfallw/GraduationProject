@@ -1,6 +1,7 @@
 #ifndef NETSRVH
 #define NETSRVH
 
+#include <DNSServer.h>
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <ArduinoOTA.h>
@@ -21,8 +22,6 @@ struct conn_t
     String pwd;
     bool YES = false;
 };
-
-extern struct conn_t I_WANT_CONN;
 
 class AsyncElegantOtaClass
 
@@ -179,6 +178,28 @@ public:
             });
     }
 };
+
+class CaptiveRequestHandler : public AsyncWebHandler
+{
+public:
+    CaptiveRequestHandler() {}
+    virtual ~CaptiveRequestHandler() {}
+    bool canHandle(AsyncWebServerRequest *request)
+    {
+        // request->addInterestingHeader("ANY");
+        return true;
+    }
+
+    void handleRequest(AsyncWebServerRequest *request)
+    {
+        String href = "http://" + WiFi.softAPIP().toString();
+        request->redirect(href);
+    }
+};
+
+extern struct conn_t I_WANT_CONN;
+extern DNSServer dnsServer;
+extern AsyncWebServer server;
 
 extern bool conn_wifi(bool scan = false);
 extern bool conn_wifi(String ssid, String pwd);

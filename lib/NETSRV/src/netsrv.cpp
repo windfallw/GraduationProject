@@ -1,10 +1,11 @@
 #include "netsrv.h"
 
-AsyncWebServer server(80);
-AsyncElegantOtaClass AsyncElegantOTA;
-
 constexpr const char *TEXT_MIMETYPE = "text/plain";
 struct conn_t I_WANT_CONN;
+
+DNSServer dnsServer;
+AsyncWebServer server(80);
+AsyncElegantOtaClass AsyncElegantOTA;
 
 void set_OTA(char *hostname)
 {
@@ -100,7 +101,7 @@ bool conn_wifi(String ssid, String pwd)
     }
     else
     {
-        Serial.printf("STA: Connection successful to %s\r\nIP address: %s\n", ssid.c_str(), WiFi.localIP().toString().c_str());
+        Serial.printf("STA: Connection successful to %s\nIP address: %s\n", ssid.c_str(), WiFi.localIP().toString().c_str());
 
         for (int i = 0; i < 3; i++)
             // if exists in config file, not save
@@ -130,13 +131,6 @@ void set_netsrv()
 
     set_OTA(cg.convert(cg.ap.ssid));
 
-    // int params = request->params();
-    // for (int i = 0; i < params; i++)
-    // {
-    //     AsyncWebParameter *p = request->getParam(i);
-    //     Serial.printf("_POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
-    // }
-
     server.on("/postwifi", HTTP_POST,
               [](AsyncWebServerRequest *request)
               {
@@ -153,6 +147,34 @@ void set_netsrv()
                       I_WANT_CONN.pwd = pwd;
                       I_WANT_CONN.YES = true;
                   }
+              });
+
+    server.on("/postwarn", HTTP_POST,
+              [](AsyncWebServerRequest *request)
+              {
+                  int warnNum = request->arg("warn").toInt();
+                  if (warnNum >= 0 && warnNum <= 20)
+                  {
+                      warnNum = warnNum * 1000; // meter to mm
+                      cg.alarm.tof1 = warnNum;
+                      cg.alarm.tof2 = warnNum;
+                      writeConfigFile();
+                      request->send(200, TEXT_MIMETYPE, "Done!");
+                  }
+                  return request->send(200, TEXT_MIMETYPE, "unknown param");
+              });
+
+    server.on("/postwarnsec", HTTP_POST,
+              [](AsyncWebServerRequest *request)
+              {
+                  int warnSec = request->arg("warnSec").toInt();
+                  if (warnSec >= 0 && warnSec <= 5000)
+                  {
+                      cg.alarm.ms = warnSec;
+                      writeConfigFile();
+                      request->send(200, TEXT_MIMETYPE, "Done!");
+                  }
+                  return request->send(200, TEXT_MIMETYPE, "unknown param");
               });
 
     server.on("/machine", HTTP_POST,
@@ -321,10 +343,14 @@ void set_netsrv()
                 Serial.printf("BodyEnd: %u\n", total);
         });
 
-    server.begin();
-
     WiFi.softAP(cg.ap.ssid.c_str(), cg.ap.pwd.c_str()); // WiFi.softAPdisconnect(true);
     WiFi.softAPsetHostname(cg.ap.ssid.c_str());
+
+    dnsServer.start(53, "*", WiFi.softAPIP());
+    server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER); // only when requested from AP
+
     Serial.printf("AP started SSID -> %s\n", WiFi.softAPSSID().c_str());
     Serial.printf("http://%s\n", WiFi.softAPIP().toString().c_str());
+
+    server.begin();
 }
