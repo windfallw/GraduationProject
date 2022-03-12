@@ -1,11 +1,12 @@
 #include "netsrv.h"
 
 constexpr const char *TEXT_MIMETYPE = "text/plain";
-struct conn_t I_WANT_CONN;
 
 DNSServer dnsServer;
 AsyncWebServer server(80);
 AsyncElegantOtaClass AsyncElegantOTA;
+
+AsyncMqttClient mqttClient;
 
 void set_OTA(char *hostname)
 {
@@ -102,6 +103,7 @@ bool conn_wifi(String ssid, String pwd)
     else
     {
         Serial.printf("STA: Connection successful to %s\nIP address: %s\n", ssid.c_str(), WiFi.localIP().toString().c_str());
+        mqttClient.connect();
 
         for (int i = 0; i < 3; i++)
             // if exists in config file, not save
@@ -115,6 +117,7 @@ bool conn_wifi(String ssid, String pwd)
         cg.sta[0].ssid = ssid;
         cg.sta[0].pwd = pwd;
         writeConfigFile();
+
         return true;
     }
 }
@@ -136,7 +139,7 @@ void set_netsrv()
               {
                   String ssid = request->arg("ssid");
                   String pwd = request->arg("pwd");
-                  if (I_WANT_CONN.YES)
+                  if (I_WANT_CONN.WIFI)
                   {
                       request->send(200, TEXT_MIMETYPE, "PLZ WAITING...");
                   }
@@ -145,7 +148,7 @@ void set_netsrv()
                       request->send(200, TEXT_MIMETYPE, "CMD RECEIVED! Executing...");
                       I_WANT_CONN.ssid = ssid;
                       I_WANT_CONN.pwd = pwd;
-                      I_WANT_CONN.YES = true;
+                      I_WANT_CONN.WIFI = true;
                   }
               });
 
@@ -192,7 +195,7 @@ void set_netsrv()
                   }
                   else if (p->value() == "scan")
                   {
-                      if (!I_WANT_CONN.YES)
+                      if (!I_WANT_CONN.WIFI)
                           // avoid scan and conn at the same time!
                           WiFi.scanNetworks(true);
                       AsyncWebServerResponse *response = request->beginResponse(200, TEXT_MIMETYPE, p->value());
@@ -353,4 +356,54 @@ void set_netsrv()
     Serial.printf("http://%s\n", WiFi.softAPIP().toString().c_str());
 
     server.begin();
+}
+
+void onMqttConnect(bool sessionPresent)
+{
+
+    Serial.printf("Connected to MQTT Session present: %d\n", sessionPresent);
+    mqttClient.subscribe(cg.mqtt.subscribe.c_str(), 0);
+    mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, "{}"); // retain=true tell mqtt broker to save message for future user
+}
+
+void onMqttDisconnect(AsyncMqttClientDisconnectReason reason)
+{
+    Serial.println("Disconnected from MQTT");
+}
+
+void onMqttSubscribe(uint16_t packetId, uint8_t qos)
+{
+    Serial.printf("Subscribe acknowledged packetId: %d qos: %d\n", packetId, qos);
+}
+
+void onMqttUnsubscribe(uint16_t packetId)
+{
+    Serial.printf("Unsubscribe acknowledged packetId: %d\n", packetId);
+}
+
+void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
+{
+    // Serial.printf("topic: %s qos: %d dup: %d\n", topic, properties.qos, properties.dup);
+    // Serial.printf("retain: %d len: %d index: %d total %d\n", properties.retain, len, index, total);
+
+    if (String(topic) == cg.mqtt.subscribe)
+        Serial.println(payload);
+}
+
+void onMqttPublish(uint16_t packetId)
+{
+    Serial.printf("Publish acknowledged packetId: %d\n", packetId);
+}
+
+void set_mqtt()
+{
+    mqttClient.onConnect(onMqttConnect);
+    mqttClient.onDisconnect(onMqttDisconnect);
+    mqttClient.onSubscribe(onMqttSubscribe);
+    mqttClient.onUnsubscribe(onMqttUnsubscribe);
+    mqttClient.onMessage(onMqttMessage);
+    mqttClient.onPublish(onMqttPublish);
+    mqttClient.setServer(cg.mqtt.server.c_str(), cg.mqtt.port);
+    // mqttClient.setCredentials();
+    mqttClient.setKeepAlive(15);
 }

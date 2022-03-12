@@ -45,7 +45,15 @@ struct cg_t
     }
 };
 
+struct conn_t
+{
+    String ssid;
+    String pwd;
+    bool WIFI = false;
+};
+
 extern struct cg_t cg;
+extern struct conn_t I_WANT_CONN;
 
 extern void set_littlefs();
 extern void listDir(const char *dirname, uint8_t levels);

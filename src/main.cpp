@@ -6,14 +6,14 @@
 
 TaskHandle_t Task1;
 
-SKPTOFLIDAR skp1 = SKPTOFLIDAR(&Serial1, 921600, 15, 14); // rx1 15 tx1 14
-SKPTOFLIDAR skp2 = SKPTOFLIDAR(&Serial2, 921600, 16, 17); // rx2 16 tx2 17
+SKPTOFLIDAR skp1 = SKPTOFLIDAR(1, &Serial1, 921600, 15, 14); // rx1 15 tx1 14
+SKPTOFLIDAR skp2 = SKPTOFLIDAR(2, &Serial2, 921600, 16, 17); // rx2 16 tx2 17
 
 IP5108 bms = IP5108(&Wire, 21, 22, 400000); // SDA1 21 SCL1 22
 
 /* pin channel(0-15) resolution(1-16)  freq
 All pins that can act as outputs can be used as PWM pins. */
-shinelight buzzer = shinelight(13, 0, 16, 50000);
+shinelight buzzer = shinelight(13, 0, 8, 1);
 
 void update_ui()
 {
@@ -27,10 +27,14 @@ void Task1code(void *pvParameters)
     Serial.printf("Task1 running on core %d\r\n", xPortGetCoreID());
     for (;;)
     {
-        skp1.read_handler();
-        skp2.read_handler();
-        bms.update();
+        if (skp1.handler() || skp2.handler())
+        {
+            // buzzer.writeCycle(30);
+            mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, "{}");
+            Serial.printf("trigger alarm tof1: %d tof2: %d\r\n", skp1.distance, skp2.distance);
+        }
 
+        bms.update();
         update_ui();
         lv_timer_handler();
     }
@@ -63,6 +67,7 @@ void setup()
         &Task1,    /* Task handle to keep track of created task */
         0);        /* pin task to core 0 */
 
+    set_mqtt();   // mqtt client
     set_netsrv(); // try connect wifi & set up AP&OTA&Webserver
     Serial.println("setup done");
 }
@@ -71,13 +76,17 @@ void loop()
 {
     ArduinoOTA.handle();
     dnsServer.processNextRequest();
-    if (I_WANT_CONN.YES)
+
+    if (I_WANT_CONN.WIFI)
     {
         if (!conn_wifi(I_WANT_CONN.ssid, I_WANT_CONN.pwd))
         {
             // connect fail rollback to known wifi.
             conn_wifi(false);
         }
-        I_WANT_CONN.YES = false;
+        I_WANT_CONN.WIFI = false; // only exec once.
     }
+
+    if (!mqttClient.connected())
+        mqttClient.connect();
 }

@@ -16,12 +16,7 @@
 
 #include "elegantWebpage.h"
 
-struct conn_t
-{
-    String ssid;
-    String pwd;
-    bool YES = false;
-};
+#include <AsyncMqttClient.h>
 
 class AsyncElegantOtaClass
 
@@ -197,12 +192,13 @@ public:
     }
 };
 
-extern struct conn_t I_WANT_CONN;
 extern DNSServer dnsServer;
 extern AsyncWebServer server;
+extern AsyncMqttClient mqttClient;
 
 extern bool conn_wifi(bool scan = false);
 extern bool conn_wifi(String ssid, String pwd);
+extern void set_mqtt();
 
 extern void set_netsrv();
 

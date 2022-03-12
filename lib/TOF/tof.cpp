@@ -18,15 +18,17 @@ void shinelight::set_up()
     ledcAttachPin(pin, channel);
 }
 
-void shinelight::write(uint16_t dutyCycle)
+void shinelight::writeCycle(uint16_t dutyCycle)
 {
-    ledcWrite(channel, dutyCycle);
+    // ledcReadFreq(channel);
+    if (ledcRead(channel) != dutyCycle)
+        ledcWrite(channel, dutyCycle);
 }
 
 void shinelight::fade_test()
 {
     uint16_t dutyCycle = 0;
-    while (dutyCycle < 0xffff)
+    while (dutyCycle < 0xff)
     {
         dutyCycle++;
         ledcWrite(channel, dutyCycle);
@@ -65,8 +67,9 @@ const char deviceInfo[] = {0x55, 0x01, 0x00, 0x00, 0x00, 0x00, 0xD3, 0xAA};
 const char byteOutPut[] = {0x55, 0x04, 0x00, 0x00, 0x00, 0x01, 0x2E, 0xAA};
 const char pixhawkOutPut[] = {0x55, 0x04, 0x00, 0x00, 0x00, 0x02, 0x7D, 0xAA};
 
-SKPTOFLIDAR::SKPTOFLIDAR(HardwareSerial *u, u_long baudrate, int8_t rx, int8_t tx)
+SKPTOFLIDAR::SKPTOFLIDAR(uint8_t id, HardwareSerial *u, u_long baudrate, int8_t rx, int8_t tx)
 {
+    _id = id;
     uart = u;
     uart->begin(baudrate, SERIAL_8N1, rx, tx);
     uart->write(AutoMode, sizeof(AutoMode));
@@ -95,7 +98,7 @@ void SKPTOFLIDAR::print_buffs()
     Serial.println();
 }
 
-void SKPTOFLIDAR::read_handler()
+uint8_t SKPTOFLIDAR::read_tof()
 {
     if (uart->available() > 8)
     {
@@ -110,12 +113,28 @@ void SKPTOFLIDAR::read_handler()
                 uint8_t tmp[4] = {buffs[5], buffs[4], buffs[3], buffs[2]};
                 memcpy(&distance, &tmp, 4);
                 // Serial.println(distance);
+                return true;
             }
         }
     }
+    return false;
 }
 
-int digest(uint8_t buffer[])
+uint8_t SKPTOFLIDAR::handler()
+{
+    if (!read_tof())
+        return false;
+
+    if (_id == 1 && distance < cg.alarm.tof1)
+        return true;
+
+    if (_id == 2 && distance < cg.alarm.tof2)
+        return true;
+
+    return false;
+}
+
+uint8_t digest(uint8_t buffer[])
 {
     uint8_t crc = 0x00;
     for (int i = 1; i < 6; i++)
