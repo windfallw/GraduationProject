@@ -411,7 +411,7 @@ void set_mqtt()
     mqttClient.onMessage(onMqttMessage);
     mqttClient.onPublish(onMqttPublish);
     mqttClient.setServer(cg.mqtt.server.c_str(), cg.mqtt.port);
-    mqttClient.setCredentials("public", "public");
+    mqttClient.setCredentials(cg.mqtt.user.c_str(), cg.mqtt.pwd.c_str());
     mqttClient.setKeepAlive(30);
     if (WiFi.isConnected())
         mqttClient.connect();

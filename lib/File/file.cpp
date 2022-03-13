@@ -19,7 +19,7 @@ struct cg_t init_config()
          {"example3", "password3"}},
         {apssid, "12345678"},
         {1000, 1000, 500},
-        {"server-publish", "client-submit", "example.com", 1883}};
+        {"public", "public", "server-publish", "client-submit", "example.com", 1883}};
 
     return config;
 }
@@ -200,6 +200,8 @@ void readConfigFile()
     cg.alarm.tof2 = alarm["tof2"];
     cg.alarm.ms = alarm["ms"];
 
+    cg.mqtt.user = const_cast<char *>((const char *)mqtt["user"]);
+    cg.mqtt.pwd = const_cast<char *>((const char *)mqtt["pwd"]);
     cg.mqtt.subscribe = const_cast<char *>((const char *)mqtt["subscribe"]);
     cg.mqtt.publish = const_cast<char *>((const char *)mqtt["publish"]);
     cg.mqtt.server = const_cast<char *>((const char *)mqtt["server"]);
@@ -244,6 +246,8 @@ void writeConfigFile()
     alarm["tof2"] = cg.alarm.tof2;
     alarm["ms"] = cg.alarm.ms;
 
+    mqtt["user"] = cg.mqtt.user;
+    mqtt["pwd"] = cg.mqtt.pwd;
     mqtt["subscribe"] = cg.mqtt.subscribe;
     mqtt["publish"] = cg.mqtt.publish;
     mqtt["server"] = cg.mqtt.server;

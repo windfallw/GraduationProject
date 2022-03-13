@@ -26,6 +26,8 @@ struct alarm_config
 
 struct mqtt_config
 {
+    String user;
+    String pwd;
     String subscribe;
     String publish;
     String server;

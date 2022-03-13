@@ -7,18 +7,21 @@
 // use npn mosfet  ctrl light & buzzer
 class shinelight
 {
+private:
+    hw_timer_t *timer;
+
 public:
     uint8_t pin;
     uint8_t channel;
     uint8_t resolution;
     double freq;
+    uint32_t dutyCycle = 0;
 
-    shinelight(uint8_t pin, uint8_t channel, uint8_t resolution, double freq);
+    shinelight(uint8_t pin, uint8_t channel, double freq, uint8_t resolution = 8);
     ~shinelight();
 
-    void set_up();
-    void writeCycle(uint16_t dutyCycle);
-    void writeFreq(uint16_t Freq);
+    void writeCycle(uint32_t cycle);
+    void writeFreq(uint32_t fq);
 
     void fade_test();
 };

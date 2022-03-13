@@ -1,8 +1,15 @@
 #include "tof.h"
 
-shinelight::shinelight(uint8_t pin, uint8_t channel, uint8_t resolution, double freq) : pin(pin), channel(channel), resolution(resolution), freq(freq)
+shinelight::shinelight(uint8_t pin, uint8_t channel, double freq, uint8_t resolution)
 {
-    set_up();
+    this->pin = pin;
+    this->channel = channel;
+    this->resolution = resolution;
+    this->freq = freq;
+
+    ledcSetup(channel, freq, resolution);
+    ledcAttachPin(pin, channel);
+    ledcWrite(channel, dutyCycle);
 }
 
 shinelight::~shinelight()
@@ -10,24 +17,27 @@ shinelight::~shinelight()
     ledcDetachPin(pin);
 }
 
-void shinelight::set_up()
+void shinelight::writeCycle(uint32_t cycle)
 {
-    ledcDetachPin(pin);
-    ledcSetup(channel, freq, resolution);
-    ledcWrite(channel, 0);
-    ledcAttachPin(pin, channel);
+    if (ledcRead(channel) != cycle)
+    {
+        dutyCycle = cycle;
+        ledcWrite(channel, dutyCycle);
+    }
 }
 
-void shinelight::writeCycle(uint16_t dutyCycle)
+void shinelight::writeFreq(uint32_t fq)
 {
-    // ledcReadFreq(channel);
-    if (ledcRead(channel) != dutyCycle)
-        ledcWrite(channel, dutyCycle);
+    if (ledcReadFreq(channel) != fq)
+    {
+        freq = fq;
+        ledcSetup(channel, freq, resolution);
+    }
 }
 
 void shinelight::fade_test()
 {
-    uint16_t dutyCycle = 0;
+    uint32_t dutyCycle = 0;
     while (dutyCycle < 0xff)
     {
         dutyCycle++;

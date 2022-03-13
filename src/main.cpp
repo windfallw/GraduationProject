@@ -5,6 +5,8 @@
 #include "netsrv.h"
 
 TaskHandle_t Task1;
+TaskHandle_t Task2;
+TaskHandle_t Task3;
 
 SKPTOFLIDAR skp1 = SKPTOFLIDAR(1, &Serial1, 921600, 15, 14); // rx1 15 tx1 14
 SKPTOFLIDAR skp2 = SKPTOFLIDAR(2, &Serial2, 921600, 16, 17); // rx2 16 tx2 17
@@ -13,7 +15,7 @@ IP5108 bms = IP5108(&Wire, 21, 22, 400000); // SDA1 21 SCL1 22
 
 /* pin channel(0-15) resolution(1-16)  freq
 All pins that can act as outputs can be used as PWM pins. */
-shinelight buzzer = shinelight(13, 0, 8, 1);
+shinelight buzzer = shinelight(13, 0, 10);
 
 void update_ui()
 {
@@ -24,19 +26,40 @@ void update_ui()
 
 void Task1code(void *pvParameters)
 {
-    Serial.printf("Task1 running on core %d\r\n", xPortGetCoreID());
+    Serial.printf("Task1 running on core %d with priority %d\r\n", xPortGetCoreID(), uxTaskPriorityGet(Task1));
     for (;;)
     {
         if (skp1.handler() || skp2.handler())
         {
             // buzzer.writeCycle(30);
             // mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, "{}");
+
             Serial.printf("trigger alarm tof1: %d tof2: %d\r\n", skp1.distance, skp2.distance);
         }
+        vTaskDelay(1); // vTaskDelay(1) = delay(1)
+    }
+}
 
+void Task2code(void *pvParameters)
+{
+    Serial.printf("Task2 running on core %d with priority %d\r\n", xPortGetCoreID(), uxTaskPriorityGet(Task2));
+    for (;;)
+    {
         bms.update();
+        vTaskDelay(1);
+    }
+}
+
+void Task3code(void *pvParameters)
+{
+    Serial.printf("Task3 running on core %d with priority %d\r\n", xPortGetCoreID(), uxTaskPriorityGet(Task3));
+    // TickType_t xLastWakeTime = xTaskGetTickCount();
+    for (;;)
+    {
         update_ui();
         lv_timer_handler();
+        vTaskDelay(1);
+        // vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));
     }
 }
 
@@ -58,13 +81,33 @@ void setup()
     set_rotary_encoder();
     set_ui();
 
+    /*  defalut ESP_TASK_PRIO_MAX = configMAX_PRIORITIES = 25
+    but priority value range (0-24) set priority = -1 or bigger than 24 will auto correct to 24*/
     xTaskCreatePinnedToCore(
         Task1code, /* Task function. */
         "Task1",   /* name of task. */
         10240,     /* Stack size of task */
         NULL,      /* parameter of the task */
-        1,         /* priority of the task */
+        3,         /* priority of the task */
         &Task1,    /* Task handle to keep track of created task */
+        0);        /* pin task to core 0 */
+
+    xTaskCreatePinnedToCore(
+        Task2code, /* Task function. */
+        "Task2",   /* name of task. */
+        10240,     /* Stack size of task */
+        NULL,      /* parameter of the task */
+        2,         /* priority of the task */
+        &Task2,    /* Task handle to keep track of created task */
+        0);        /* pin task to core 0 */
+
+    xTaskCreatePinnedToCore(
+        Task3code, /* Task function. */
+        "Task3",   /* name of task. */
+        10240,     /* Stack size of task */
+        NULL,      /* parameter of the task */
+        1,         /* priority of the task */
+        &Task3,    /* Task handle to keep track of created task */
         0);        /* pin task to core 0 */
 
     set_netsrv(); // try connect wifi & set up AP&OTA&Webserver
