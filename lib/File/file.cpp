@@ -25,7 +25,7 @@ struct cg_t init_config()
 }
 
 struct cg_t cg = init_config();
-struct conn_t I_WANT_CONN;
+struct conn_t CONN_SIGN;
 
 void set_littlefs()
 {

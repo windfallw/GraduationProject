@@ -49,11 +49,13 @@ struct conn_t
 {
     String ssid;
     String pwd;
-    bool WIFI = false;
+    bool WEB = false;  // for web
+    bool WiFi = false; // check flag
+    bool MQTT = false; // check flag
 };
 
 extern struct cg_t cg;
-extern struct conn_t I_WANT_CONN;
+extern struct conn_t CONN_SIGN;
 
 extern void set_littlefs();
 extern void listDir(const char *dirname, uint8_t levels);

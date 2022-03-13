@@ -30,7 +30,7 @@ void Task1code(void *pvParameters)
         if (skp1.handler() || skp2.handler())
         {
             // buzzer.writeCycle(30);
-            mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, "{}");
+            // mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, "{}");
             Serial.printf("trigger alarm tof1: %d tof2: %d\r\n", skp1.distance, skp2.distance);
         }
 
@@ -67,8 +67,9 @@ void setup()
         &Task1,    /* Task handle to keep track of created task */
         0);        /* pin task to core 0 */
 
-    set_mqtt();   // mqtt client
     set_netsrv(); // try connect wifi & set up AP&OTA&Webserver
+    set_mqtt();   // mqtt client
+
     Serial.println("setup done");
 }
 
@@ -77,16 +78,27 @@ void loop()
     ArduinoOTA.handle();
     dnsServer.processNextRequest();
 
-    if (I_WANT_CONN.WIFI)
+    if (CONN_SIGN.WEB)
     {
-        if (!conn_wifi(I_WANT_CONN.ssid, I_WANT_CONN.pwd))
+        // only exec once.
+        CONN_SIGN.WEB = false;
+        if (!conn_wifi(CONN_SIGN.ssid, CONN_SIGN.pwd))
         {
             // connect fail rollback to known wifi.
             conn_wifi(false);
         }
-        I_WANT_CONN.WIFI = false; // only exec once.
     }
 
-    if (!mqttClient.connected())
+    if (CONN_SIGN.WiFi)
+    {
+        CONN_SIGN.WiFi = false;
+        if (!WiFi.isConnected())
+            conn_wifi(true);
+    }
+
+    if (CONN_SIGN.MQTT && WiFi.isConnected())
+    {
+        CONN_SIGN.MQTT = false;
         mqttClient.connect();
+    }
 }

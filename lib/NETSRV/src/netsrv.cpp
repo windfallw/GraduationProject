@@ -103,12 +103,19 @@ bool conn_wifi(String ssid, String pwd)
     else
     {
         Serial.printf("STA: Connection successful to %s\nIP address: %s\n", ssid.c_str(), WiFi.localIP().toString().c_str());
-        mqttClient.connect();
 
         for (int i = 0; i < 3; i++)
-            // if exists in config file, not save
+            // if ssid exists in config file
             if (cg.sta[i].ssid == ssid)
+            {
+                if (cg.sta[i].pwd != pwd)
+                {
+                    // if pwd not the same save else return
+                    cg.sta[i].pwd = pwd;
+                    writeConfigFile();
+                }
                 return true;
+            }
 
         cg.sta[2].ssid = cg.sta[1].ssid;
         cg.sta[2].pwd = cg.sta[1].pwd;
@@ -139,16 +146,16 @@ void set_netsrv()
               {
                   String ssid = request->arg("ssid");
                   String pwd = request->arg("pwd");
-                  if (I_WANT_CONN.WIFI)
+                  if (CONN_SIGN.WEB)
                   {
                       request->send(200, TEXT_MIMETYPE, "PLZ WAITING...");
                   }
                   else
                   {
                       request->send(200, TEXT_MIMETYPE, "CMD RECEIVED! Executing...");
-                      I_WANT_CONN.ssid = ssid;
-                      I_WANT_CONN.pwd = pwd;
-                      I_WANT_CONN.WIFI = true;
+                      CONN_SIGN.ssid = ssid;
+                      CONN_SIGN.pwd = pwd;
+                      CONN_SIGN.WEB = true;
                   }
               });
 
@@ -195,7 +202,7 @@ void set_netsrv()
                   }
                   else if (p->value() == "scan")
                   {
-                      if (!I_WANT_CONN.WIFI)
+                      if (!CONN_SIGN.WEB)
                           // avoid scan and conn at the same time!
                           WiFi.scanNetworks(true);
                       AsyncWebServerResponse *response = request->beginResponse(200, TEXT_MIMETYPE, p->value());
@@ -360,15 +367,15 @@ void set_netsrv()
 
 void onMqttConnect(bool sessionPresent)
 {
-
     Serial.printf("Connected to MQTT Session present: %d\n", sessionPresent);
     mqttClient.subscribe(cg.mqtt.subscribe.c_str(), 0);
-    mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, "{}"); // retain=true tell mqtt broker to save message for future user
+    // mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, "{}"); // dup flag -> duplicate message | retain flag -> tell mqtt broker to save message for future user
 }
 
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason)
 {
     Serial.println("Disconnected from MQTT");
+    CONN_SIGN.MQTT = true;
 }
 
 void onMqttSubscribe(uint16_t packetId, uint8_t qos)
@@ -404,6 +411,10 @@ void set_mqtt()
     mqttClient.onMessage(onMqttMessage);
     mqttClient.onPublish(onMqttPublish);
     mqttClient.setServer(cg.mqtt.server.c_str(), cg.mqtt.port);
-    // mqttClient.setCredentials();
-    mqttClient.setKeepAlive(15);
+    mqttClient.setCredentials("public", "public");
+    mqttClient.setKeepAlive(30);
+    if (WiFi.isConnected())
+        mqttClient.connect();
+    else
+        CONN_SIGN.MQTT = true;
 }
