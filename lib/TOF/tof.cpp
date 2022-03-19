@@ -1,11 +1,27 @@
 #include "tof.h"
 
-shinelight::shinelight(uint8_t pin, uint8_t channel, double freq, uint8_t resolution)
+hw_timer_t *timer;
+
+bool is_timeout = false;
+
+void IRAM_ATTR onTimer()
+{
+    // Serial.println("hi");
+    is_timeout = true;
+}
+
+shinelight::shinelight(uint8_t timerNum, uint8_t pin, uint8_t channel, double freq, uint8_t resolution)
 {
     this->pin = pin;
     this->channel = channel;
     this->resolution = resolution;
     this->freq = freq;
+    this->dutyCycle = 0;
+
+    timer = timerBegin(timerNum, 80, true);
+    timerAttachInterrupt(timer, &onTimer, true);
+    timerAlarmWrite(timer, cg.alarm.ms * 1000, false); // value in microseconds
+    timerWrite(timer, 0);
 
     ledcSetup(channel, freq, resolution);
     ledcAttachPin(pin, channel);

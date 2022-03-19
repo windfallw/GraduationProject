@@ -15,7 +15,7 @@ IP5108 bms = IP5108(&Wire, 21, 22, 400000); // SDA1 21 SCL1 22
 
 /* pin channel(0-15) resolution(1-16)  freq
 All pins that can act as outputs can be used as PWM pins. */
-shinelight buzzer = shinelight(13, 0, 10);
+shinelight buzzer = shinelight(0, 13, 0, 10);
 
 void update_ui()
 {
@@ -118,6 +118,17 @@ void setup()
 
 void loop()
 {
+    if (is_timeout)
+    {
+        Serial.println("timeout");
+        is_timeout = false;
+        timerWrite(timer, 0);
+    }
+    else
+    {
+        timerAlarmEnable(timer);
+    }
+
     ArduinoOTA.handle();
     dnsServer.processNextRequest();
 
