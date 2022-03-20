@@ -33,7 +33,7 @@ void Task1code(void *pvParameters)
         if (skp1.handler() || skp2.handler())
             buzzer.open();
         else
-            vTaskDelay(2); // vTaskDelay() = delay()
+            vTaskDelay(1); // vTaskDelay() = delay()
     }
 }
 
@@ -44,7 +44,6 @@ void Task2code(void *pvParameters)
     {
         buzzer.check();
         bms.update();
-
         vTaskDelay(1);
     }
 }
@@ -110,8 +109,9 @@ void setup()
         &Task3,    /* Task handle to keep track of created task */
         0);        /* pin task to core 0 */
 
-    set_netsrv(); // try connect wifi & set up AP&OTA&Webserver
-    set_mqtt();   // mqtt client
+    set_netsrv();      // try connect wifi & set up AP&OTA&Webserver
+    set_mqtt();        // mqtt client
+    set_checkTimer(1); // wifi check timer
 
     Serial.println("setup done");
 }

@@ -8,6 +8,13 @@ AsyncElegantOtaClass AsyncElegantOTA;
 
 AsyncMqttClient mqttClient;
 
+hw_timer_t *tim2;
+
+void IRAM_ATTR onTim2()
+{
+    CONN_SIGN.WiFi = true;
+}
+
 void set_OTA(char *hostname)
 {
     ArduinoOTA.onStart(
@@ -394,7 +401,33 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
     // Serial.printf("retain: %d len: %d index: %d total %d\n", properties.retain, len, index, total);
 
     if (String(topic) == cg.mqtt.subscribe)
+    {
         Serial.println(payload);
+
+        StaticJsonDocument<1024> doc;
+        DeserializationError error = deserializeJson(doc, payload);
+        if (error)
+        {
+            Serial.print(F("[E]deserializeJson() failed: "));
+            Serial.println(error.c_str());
+            return;
+        }
+
+        if (doc["mac"] == cg.mqtt.macddr)
+        {
+            // response to initial request
+            if (doc["init"])
+            {
+                doc["range1"] = cg.alarm.tof1;
+                doc["range2"] = cg.alarm.tof2;
+                doc["ms"] = cg.alarm.ms;
+                String msg;
+                serializeJson(doc, msg);
+                Serial.println(msg);
+                mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, msg.c_str());
+            }
+        }
+    }
 }
 
 void onMqttPublish(uint16_t packetId)
@@ -417,4 +450,14 @@ void set_mqtt()
         mqttClient.connect();
     else
         CONN_SIGN.MQTT = true;
+}
+
+void set_checkTimer(uint8_t timerNum)
+{
+    tim2 = timerBegin(timerNum, 80, true);
+    timerAttachInterrupt(tim2, &onTim2, true);
+    /* autoreload = true
+    value in microseconds so 10,000,000 = 10s */
+    timerAlarmWrite(tim2, 10000000, true);
+    timerAlarmEnable(tim2);
 }

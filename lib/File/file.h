@@ -28,6 +28,7 @@ struct alarm_config
 
 struct mqtt_config
 {
+    String macddr;
     String user;
     String pwd;
     String subscribe;
@@ -54,8 +55,8 @@ struct conn_t
     String ssid;
     String pwd;
     bool WEB = false;  // for web
-    bool WiFi = false; // check flag
-    bool MQTT = false; // check flag
+    bool WiFi = false; // wifi check flag
+    bool MQTT = false; // mqtt check flag
 };
 
 extern struct cg_t cg;

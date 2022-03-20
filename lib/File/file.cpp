@@ -10,8 +10,11 @@ struct cg_t init_config()
 {
     uint8_t mac[6];
     char *apssid = (char *)malloc(10); // use free() to release
+    char *macAddr = (char *)malloc(20);
+
     esp_efuse_mac_get_default(mac);
     sprintf(apssid, "ESP%02X%02X", mac[4], mac[5]);
+    sprintf(macAddr, "%02x%02x%02x%02x%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
     struct cg_t config = {
         {{"example1", "password1"},
@@ -19,7 +22,7 @@ struct cg_t init_config()
          {"example3", "password3"}},
         {apssid, "12345678"},
         {1000, 1000, 500, 10, 30},
-        {"public", "public", "server-publish", "client-submit", "example.com", 1883}};
+        {macAddr, "public", "public", "server-publish", "client-submit", "example.com", 1883}};
 
     return config;
 }
@@ -122,7 +125,6 @@ void writeFile(const char *path, const char *message)
     file.close();
 }
 
-// the wifi sta array will be duplicated if read twice in one boot
 void readConfigFile()
 {
     if (!LITTLEFS.exists(config_file_path))
@@ -202,6 +204,7 @@ void readConfigFile()
     cg.alarm.freq = alarm["freq"];
     cg.alarm.dutyCycle = alarm["dutyCycle"];
 
+    // cg.mqtt.macddr = const_cast<char *>((const char *)mqtt["macddr"]);
     cg.mqtt.user = const_cast<char *>((const char *)mqtt["user"]);
     cg.mqtt.pwd = const_cast<char *>((const char *)mqtt["pwd"]);
     cg.mqtt.subscribe = const_cast<char *>((const char *)mqtt["subscribe"]);
@@ -250,6 +253,7 @@ void writeConfigFile()
     alarm["freq"] = cg.alarm.freq;
     alarm["dutyCycle"] = cg.alarm.dutyCycle;
 
+    mqtt["macddr"] = cg.mqtt.macddr;
     mqtt["user"] = cg.mqtt.user;
     mqtt["pwd"] = cg.mqtt.pwd;
     mqtt["subscribe"] = cg.mqtt.subscribe;

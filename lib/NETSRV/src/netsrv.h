@@ -198,8 +198,9 @@ extern AsyncMqttClient mqttClient;
 
 extern bool conn_wifi(bool scan = false);
 extern bool conn_wifi(String ssid, String pwd);
-extern void set_mqtt();
 
 extern void set_netsrv();
+extern void set_mqtt();
+extern void set_checkTimer(uint8_t timerNum);
 
 #endif

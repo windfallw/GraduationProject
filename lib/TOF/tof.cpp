@@ -1,11 +1,11 @@
 #include "tof.h"
 
-hw_timer_t *tim;
+hw_timer_t *tim1;
 
 bool buzzer_Open = false;
 bool buzzer_req_off = false;
 
-void IRAM_ATTR onTim()
+void IRAM_ATTR onTim1()
 {
     buzzer_req_off = true;
 }
@@ -16,8 +16,8 @@ shinelight::shinelight(uint8_t timerNum, uint8_t pin, uint8_t channel, uint8_t r
     this->channel = channel;
     this->resolution = resolution;
 
-    tim = timerBegin(timerNum, 80, true);
-    timerAttachInterrupt(tim, &onTim, true);
+    tim1 = timerBegin(timerNum, 80, true);
+    timerAttachInterrupt(tim1, &onTim1, true);
 
     ledcSetup(channel, cg.alarm.freq, resolution);
     ledcAttachPin(pin, channel);
@@ -32,15 +32,15 @@ shinelight::~shinelight()
 void shinelight::open()
 {
     if (buzzer_Open)
-        timerWrite(tim, 0);
+        timerWrite(tim1, 0);
 
     else
     {
         ledcWrite(channel, cg.alarm.dutyCycle);
         buzzer_Open = true;
-        timerAlarmWrite(tim, cg.alarm.ms * 1000, false); // value in microseconds
-        timerWrite(tim, 0);
-        timerAlarmEnable(tim);
+        timerAlarmWrite(tim1, cg.alarm.ms * 1000, false); // value in microseconds
+        timerWrite(tim1, 0);
+        timerAlarmEnable(tim1);
     }
 }
 
@@ -48,7 +48,7 @@ void shinelight::close()
 {
     ledcWrite(channel, 0);
     buzzer_Open = false;
-    timerAlarmDisable(tim);
+    timerAlarmDisable(tim1);
     buzzer_req_off = false;
 }
 
@@ -94,7 +94,7 @@ void shinelight::fade_test()
 
 // below are ToF LiDAR Part
 
-const char
+constexpr const char
     crcTable[] = {0, 49, 98, 83, 196, 245, 166, 151, 185, 136, 219, 234, 125, 76, 31, 46, 67, 114, 33, 16, 135, 182, 229, 212,
                   250, 203, 152, 169, 62, 15, 92, 109, 134, 183, 228, 213, 66, 115, 32, 17, 63, 14, 93, 108, 251, 202, 153, 168,
                   197, 244, 167, 150, 1, 48, 99, 82, 124, 77, 30, 47, 184, 137, 218, 235, 61, 12, 95, 110, 249, 200, 155, 170,
@@ -107,16 +107,16 @@ const char
                   189, 140, 223, 238, 121, 72, 27, 42, 193, 240, 163, 146, 5, 52, 103, 86, 120, 73, 26, 43, 188, 141, 222, 239,
                   130, 179, 224, 209, 70, 119, 36, 21, 59, 10, 89, 104, 255, 206, 157, 172};
 
-const char startMeasure[] = {0x55, 0x05, 0x00, 0x00, 0x00, 0x00, 0xCC, 0xAA};
-const char stopMeasure[] = {0x55, 0x06, 0x00, 0x00, 0x00, 0x00, 0x88, 0xAA};
+constexpr const char startMeasure[] = {0x55, 0x05, 0x00, 0x00, 0x00, 0x00, 0xCC, 0xAA};
+constexpr const char stopMeasure[] = {0x55, 0x06, 0x00, 0x00, 0x00, 0x00, 0x88, 0xAA};
 
-const char singleMode[] = {0x55, 0x0D, 0x00, 0x00, 0x00, 0x01, 0xC3, 0xAA};
-const char AutoMode[] = {0x55, 0x0D, 0x00, 0x00, 0x00, 0x00, 0xF2, 0xAA};
-const char autoButCloseMode[] = {0x55, 0x0D, 0x00, 0x00, 0x00, 0x02, 0x90, 0xAA};
+constexpr const char singleMode[] = {0x55, 0x0D, 0x00, 0x00, 0x00, 0x01, 0xC3, 0xAA};
+constexpr const char AutoMode[] = {0x55, 0x0D, 0x00, 0x00, 0x00, 0x00, 0xF2, 0xAA};
+constexpr const char autoButCloseMode[] = {0x55, 0x0D, 0x00, 0x00, 0x00, 0x02, 0x90, 0xAA};
 
-const char deviceInfo[] = {0x55, 0x01, 0x00, 0x00, 0x00, 0x00, 0xD3, 0xAA};
-const char byteOutPut[] = {0x55, 0x04, 0x00, 0x00, 0x00, 0x01, 0x2E, 0xAA};
-const char pixhawkOutPut[] = {0x55, 0x04, 0x00, 0x00, 0x00, 0x02, 0x7D, 0xAA};
+constexpr const char deviceInfo[] = {0x55, 0x01, 0x00, 0x00, 0x00, 0x00, 0xD3, 0xAA};
+constexpr const char byteOutPut[] = {0x55, 0x04, 0x00, 0x00, 0x00, 0x01, 0x2E, 0xAA};
+constexpr const char pixhawkOutPut[] = {0x55, 0x04, 0x00, 0x00, 0x00, 0x02, 0x7D, 0xAA};
 
 SKPTOFLIDAR::SKPTOFLIDAR(uint8_t id, HardwareSerial *u, u_long baudrate, int8_t rx, int8_t tx)
 {
