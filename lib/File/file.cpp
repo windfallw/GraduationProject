@@ -18,7 +18,7 @@ struct cg_t init_config()
          {"example2", "password2"},
          {"example3", "password3"}},
         {apssid, "12345678"},
-        {1000, 1000, 500},
+        {1000, 1000, 500, 10, 30},
         {"public", "public", "server-publish", "client-submit", "example.com", 1883}};
 
     return config;
@@ -199,6 +199,8 @@ void readConfigFile()
     cg.alarm.tof1 = alarm["tof1"];
     cg.alarm.tof2 = alarm["tof2"];
     cg.alarm.ms = alarm["ms"];
+    cg.alarm.freq = alarm["freq"];
+    cg.alarm.dutyCycle = alarm["dutyCycle"];
 
     cg.mqtt.user = const_cast<char *>((const char *)mqtt["user"]);
     cg.mqtt.pwd = const_cast<char *>((const char *)mqtt["pwd"]);
@@ -245,6 +247,8 @@ void writeConfigFile()
     alarm["tof1"] = cg.alarm.tof1;
     alarm["tof2"] = cg.alarm.tof2;
     alarm["ms"] = cg.alarm.ms;
+    alarm["freq"] = cg.alarm.freq;
+    alarm["dutyCycle"] = cg.alarm.dutyCycle;
 
     mqtt["user"] = cg.mqtt.user;
     mqtt["pwd"] = cg.mqtt.pwd;
@@ -268,6 +272,6 @@ void resetConfigFile()
         Serial.println(F("config file removed"));
     else
         Serial.println(F("config file remove failed"));
-    delay(1000);
+
     ESP.restart();
 }

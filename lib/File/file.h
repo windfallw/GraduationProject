@@ -22,6 +22,8 @@ struct alarm_config
     uint32_t tof1;
     uint32_t tof2;
     uint32_t ms;
+    uint32_t freq;
+    uint32_t dutyCycle;
 };
 
 struct mqtt_config

@@ -1,31 +1,27 @@
 #include "tof.h"
 
-hw_timer_t *timer;
+hw_timer_t *tim;
 
-bool is_timeout = false;
+bool buzzer_Open = false;
+bool buzzer_req_off = false;
 
-void IRAM_ATTR onTimer()
+void IRAM_ATTR onTim()
 {
-    // Serial.println("hi");
-    is_timeout = true;
+    buzzer_req_off = true;
 }
 
-shinelight::shinelight(uint8_t timerNum, uint8_t pin, uint8_t channel, double freq, uint8_t resolution)
+shinelight::shinelight(uint8_t timerNum, uint8_t pin, uint8_t channel, uint8_t resolution)
 {
     this->pin = pin;
     this->channel = channel;
     this->resolution = resolution;
-    this->freq = freq;
-    this->dutyCycle = 0;
 
-    timer = timerBegin(timerNum, 80, true);
-    timerAttachInterrupt(timer, &onTimer, true);
-    timerAlarmWrite(timer, cg.alarm.ms * 1000, false); // value in microseconds
-    timerWrite(timer, 0);
+    tim = timerBegin(timerNum, 80, true);
+    timerAttachInterrupt(tim, &onTim, true);
 
-    ledcSetup(channel, freq, resolution);
+    ledcSetup(channel, cg.alarm.freq, resolution);
     ledcAttachPin(pin, channel);
-    ledcWrite(channel, dutyCycle);
+    ledcWrite(channel, 0);
 }
 
 shinelight::~shinelight()
@@ -33,12 +29,41 @@ shinelight::~shinelight()
     ledcDetachPin(pin);
 }
 
+void shinelight::open()
+{
+    if (buzzer_Open)
+        timerWrite(tim, 0);
+
+    else
+    {
+        ledcWrite(channel, cg.alarm.dutyCycle);
+        buzzer_Open = true;
+        timerAlarmWrite(tim, cg.alarm.ms * 1000, false); // value in microseconds
+        timerWrite(tim, 0);
+        timerAlarmEnable(tim);
+    }
+}
+
+void shinelight::close()
+{
+    ledcWrite(channel, 0);
+    buzzer_Open = false;
+    timerAlarmDisable(tim);
+    buzzer_req_off = false;
+}
+
+void shinelight::check()
+{
+    if (buzzer_req_off)
+        close();
+}
+
 void shinelight::writeCycle(uint32_t cycle)
 {
     if (ledcRead(channel) != cycle)
     {
-        dutyCycle = cycle;
-        ledcWrite(channel, dutyCycle);
+        cg.alarm.dutyCycle = cycle;
+        ledcWrite(channel, cg.alarm.dutyCycle);
     }
 }
 
@@ -46,8 +71,8 @@ void shinelight::writeFreq(uint32_t fq)
 {
     if (ledcReadFreq(channel) != fq)
     {
-        freq = fq;
-        ledcSetup(channel, freq, resolution);
+        cg.alarm.freq = fq;
+        ledcSetup(channel, cg.alarm.freq, resolution);
     }
 }
 

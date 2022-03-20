@@ -4,9 +4,6 @@
 #include <Arduino.h>
 #include "file.h"
 
-extern bool is_timeout;
-extern hw_timer_t *timer;
-
 // use npn mosfet  ctrl light & buzzer
 class shinelight
 {
@@ -14,11 +11,13 @@ public:
     uint8_t pin;
     uint8_t channel;
     uint8_t resolution;
-    double freq;
-    uint32_t dutyCycle;
 
-    shinelight(uint8_t timerNum, uint8_t pin, uint8_t channel, double freq, uint8_t resolution = 8);
+    shinelight(uint8_t timerNum, uint8_t pin, uint8_t channel, uint8_t resolution = 8);
     ~shinelight();
+
+    void open();
+    void close();
+    void check();
 
     void writeCycle(uint32_t cycle);
     void writeFreq(uint32_t fq);

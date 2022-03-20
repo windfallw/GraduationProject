@@ -14,8 +14,9 @@ SKPTOFLIDAR skp2 = SKPTOFLIDAR(2, &Serial2, 921600, 16, 17); // rx2 16 tx2 17
 IP5108 bms = IP5108(&Wire, 21, 22, 400000); // SDA1 21 SCL1 22
 
 /* pin channel(0-15) resolution(1-16)  freq
-All pins that can act as outputs can be used as PWM pins. */
-shinelight buzzer = shinelight(0, 13, 0, 10);
+All pins that can act as outputs can be used as PWM pins.
+timerNum = 0 Pin = 13 channel = 0 resolution = 8 */
+shinelight buzzer = shinelight(0, 13, 0);
 
 void update_ui()
 {
@@ -30,13 +31,9 @@ void Task1code(void *pvParameters)
     for (;;)
     {
         if (skp1.handler() || skp2.handler())
-        {
-            // buzzer.writeCycle(30);
-            // mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, "{}");
-
-            Serial.printf("trigger alarm tof1: %d tof2: %d\r\n", skp1.distance, skp2.distance);
-        }
-        vTaskDelay(1); // vTaskDelay(1) = delay(1)
+            buzzer.open();
+        else
+            vTaskDelay(2); // vTaskDelay() = delay()
     }
 }
 
@@ -45,7 +42,9 @@ void Task2code(void *pvParameters)
     Serial.printf("Task2 running on core %d with priority %d\r\n", xPortGetCoreID(), uxTaskPriorityGet(Task2));
     for (;;)
     {
+        buzzer.check();
         bms.update();
+
         vTaskDelay(1);
     }
 }
@@ -58,6 +57,7 @@ void Task3code(void *pvParameters)
     {
         update_ui();
         lv_timer_handler();
+
         vTaskDelay(1);
         // vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));
     }
@@ -118,17 +118,6 @@ void setup()
 
 void loop()
 {
-    if (is_timeout)
-    {
-        Serial.println("timeout");
-        is_timeout = false;
-        timerWrite(timer, 0);
-    }
-    else
-    {
-        timerAlarmEnable(timer);
-    }
-
     ArduinoOTA.handle();
     dnsServer.processNextRequest();
 
