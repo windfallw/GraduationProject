@@ -19,7 +19,6 @@
 #include <AsyncMqttClient.h>
 
 class AsyncElegantOtaClass
-
 {
 private:
     AsyncWebServer *_server;

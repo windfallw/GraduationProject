@@ -376,7 +376,8 @@ void onMqttConnect(bool sessionPresent)
 {
     Serial.printf("Connected to MQTT Session present: %d\n", sessionPresent);
     mqttClient.subscribe(cg.mqtt.subscribe.c_str(), 0);
-    // mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, "{}"); // dup flag -> duplicate message | retain flag -> tell mqtt broker to save message for future user
+    // mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, "{}");
+    // dup flag -> duplicate message; retain flag -> tell mqtt broker to save message for future user
 }
 
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason)
@@ -387,6 +388,15 @@ void onMqttDisconnect(AsyncMqttClientDisconnectReason reason)
 
 void onMqttSubscribe(uint16_t packetId, uint8_t qos)
 {
+    String output;
+    StaticJsonDocument<64> doc;
+    // not a log message
+    doc["log"] = false;
+    doc["mac"] = cg.mqtt.macddr;
+    serializeJson(doc, output);
+    // registering device to server mqtt subscriber
+    mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, output.c_str());
+
     Serial.printf("Subscribe acknowledged packetId: %d qos: %d\n", packetId, qos);
 }
 
@@ -404,7 +414,7 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
     {
         Serial.println(payload);
 
-        StaticJsonDocument<1024> doc;
+        StaticJsonDocument<256> doc;
         DeserializationError error = deserializeJson(doc, payload);
         if (error)
         {
@@ -413,19 +423,43 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
             return;
         }
 
-        if (doc["mac"] == cg.mqtt.macddr)
+        String msg;
+        if (doc["mac"] == cg.mqtt.macddr && doc["init"].is<bool>())
         {
-            // response to initial request
-            if (doc["init"])
+            if (doc["init"] == false)
             {
-                doc["range1"] = cg.alarm.tof1;
-                doc["range2"] = cg.alarm.tof2;
-                doc["ms"] = cg.alarm.ms;
-                String msg;
-                serializeJson(doc, msg);
-                Serial.println(msg);
-                mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, msg.c_str());
+                if (doc["tof1"].is<unsigned int>() && doc["tof2"].is<unsigned int>() && doc["ms"].is<unsigned int>())
+                {
+                    if (doc["tof1"] <= cg.alarm.tofMax)
+                        cg.alarm.tof1 = doc["tof1"];
+
+                    if (doc["tof2"] <= cg.alarm.tofMax)
+                        cg.alarm.tof2 = doc["tof2"];
+
+                    if (doc["ms"] <= cg.alarm.msMax)
+                        cg.alarm.ms = doc["ms"];
+
+                    writeConfigFile();
+
+                    doc["status"] = true;
+                }
+                else
+                {
+                    // modify failed
+                    doc["status"] = false;
+                }
             }
+
+            /* doc["init"] = true
+            response to get config request
+            ["status"] key is not needed */
+            doc["tof1"] = cg.alarm.tof1;
+            doc["tof2"] = cg.alarm.tof2;
+            doc["ms"] = cg.alarm.ms;
+
+            serializeJson(doc, msg);
+            Serial.println(msg);
+            mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, msg.c_str());
         }
     }
 }
@@ -458,6 +492,6 @@ void set_checkTimer(uint8_t timerNum)
     timerAttachInterrupt(tim2, &onTim2, true);
     /* autoreload = true
     value in microseconds so 10,000,000 = 10s */
-    timerAlarmWrite(tim2, 10000000, true);
+    timerAlarmWrite(tim2, CONN_SIGN.checkMicroSec, true);
     timerAlarmEnable(tim2);
 }

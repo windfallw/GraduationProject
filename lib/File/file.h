@@ -19,8 +19,10 @@ struct ap_config
 
 struct alarm_config
 {
+    uint32_t tofMax; // hard coding maximum limit 20m
     uint32_t tof1;
     uint32_t tof2;
+    uint32_t msMax; // hard coding maximum 10s
     uint32_t ms;
     uint32_t freq;
     uint32_t dutyCycle;
@@ -28,7 +30,7 @@ struct alarm_config
 
 struct mqtt_config
 {
-    String macddr;
+    String macddr; // hard coding
     String user;
     String pwd;
     String subscribe;
@@ -54,9 +56,10 @@ struct conn_t
 {
     String ssid;
     String pwd;
-    bool WEB = false;  // for web
-    bool WiFi = false; // wifi check flag
-    bool MQTT = false; // mqtt check flag
+    bool WEB = false;                        // for web
+    bool WiFi = false;                       // wifi check flag
+    bool MQTT = false;                       // mqtt check flag
+    const uint64_t checkMicroSec = 10000000; // use timer to check wifi status per 10s
 };
 
 extern struct cg_t cg;

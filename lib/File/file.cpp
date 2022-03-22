@@ -14,14 +14,14 @@ struct cg_t init_config()
 
     esp_efuse_mac_get_default(mac);
     sprintf(apssid, "ESP%02X%02X", mac[4], mac[5]);
-    sprintf(macAddr, "%02x%02x%02x%02x%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    sprintf(macAddr, "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
     struct cg_t config = {
         {{"example1", "password1"},
          {"example2", "password2"},
          {"example3", "password3"}},
         {apssid, "12345678"},
-        {1000, 1000, 500, 10, 30},
+        {20000, 1000, 1000, 10000, 500, 10, 30},
         {macAddr, "public", "public", "server-publish", "client-submit", "example.com", 1883}};
 
     return config;
@@ -198,8 +198,10 @@ void readConfigFile()
     cg.ap.ssid = const_cast<char *>((const char *)doc["wifi"]["ap"]["ssid"]);
     cg.ap.pwd = const_cast<char *>((const char *)doc["wifi"]["ap"]["pwd"]);
 
+    // cg.alarm.tofMax = alarm["tofMax"];
     cg.alarm.tof1 = alarm["tof1"];
     cg.alarm.tof2 = alarm["tof2"];
+    // cg.alarm.msMax = alarm["msMax"];
     cg.alarm.ms = alarm["ms"];
     cg.alarm.freq = alarm["freq"];
     cg.alarm.dutyCycle = alarm["dutyCycle"];
@@ -247,8 +249,10 @@ void writeConfigFile()
     wifi_ap["ssid"] = cg.ap.ssid;
     wifi_ap["pwd"] = cg.ap.pwd;
 
+    alarm["tofMax"] = cg.alarm.tofMax;
     alarm["tof1"] = cg.alarm.tof1;
     alarm["tof2"] = cg.alarm.tof2;
+    alarm["msMax"] = cg.alarm.msMax;
     alarm["ms"] = cg.alarm.ms;
     alarm["freq"] = cg.alarm.freq;
     alarm["dutyCycle"] = cg.alarm.dutyCycle;
