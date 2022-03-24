@@ -8,7 +8,7 @@ AsyncElegantOtaClass AsyncElegantOTA;
 
 AsyncMqttClient mqttClient;
 
-hw_timer_t *tim2;
+static hw_timer_t *tim2;
 
 void IRAM_ATTR onTim2()
 {
@@ -412,8 +412,7 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
 
     if (String(topic) == cg.mqtt.subscribe)
     {
-        Serial.println(payload);
-
+        // Serial.println(payload);
         StaticJsonDocument<256> doc;
         DeserializationError error = deserializeJson(doc, payload);
         if (error)

@@ -27,22 +27,46 @@ void update_ui()
 
 void Task1code(void *pvParameters)
 {
-    Serial.printf("Task1 running on core %d with priority %d\r\n", xPortGetCoreID(), uxTaskPriorityGet(Task1));
+    Serial.printf("%s running on core %d with priority %d\r\n", pcTaskGetTaskName(NULL), xPortGetCoreID(), uxTaskPriorityGet(NULL));
     for (;;)
     {
-        if (skp1.handler() || skp2.handler())
+        if (skp1.handler(cg.alarm.tof1) || skp2.handler(cg.alarm.tof2))
             buzzer.open();
-        else
-            vTaskDelay(1); // vTaskDelay() = delay()
+
+        vTaskDelay(1); // vTaskDelay() = delay()
     }
 }
 
 void Task2code(void *pvParameters)
 {
-    Serial.printf("Task2 running on core %d with priority %d\r\n", xPortGetCoreID(), uxTaskPriorityGet(Task2));
+    Serial.printf("%s running on core %d with priority %d\r\n", pcTaskGetTaskName(NULL), xPortGetCoreID(), uxTaskPriorityGet(NULL));
     for (;;)
     {
-        buzzer.check();
+        if (buzzer.ReqOff)
+        {
+            buzzer.close();
+            if (mqttClient.connected())
+            {
+                for (uint8_t tid = 0; tid <= TOFDEVICENUMBER; tid++)
+                {
+                    if (alog[tid].onpub)
+                    {
+                        String output;
+                        StaticJsonDocument<256> doc;
+                        doc["log"] = true;
+                        doc["mac"] = cg.mqtt.macddr;
+                        doc["tid"] = tid;
+                        doc["distance"] = alog[tid].distance;
+                        doc["limit"] = alog[tid].limit;
+                        serializeJson(doc, output);
+                        mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, output.c_str());
+                        alog[tid].onpub = false;
+                    }
+                }
+            }
+            buzzer.ReqOff = false;
+        }
+
         bms.update();
         vTaskDelay(1);
     }
@@ -50,13 +74,12 @@ void Task2code(void *pvParameters)
 
 void Task3code(void *pvParameters)
 {
-    Serial.printf("Task3 running on core %d with priority %d\r\n", xPortGetCoreID(), uxTaskPriorityGet(Task3));
+    Serial.printf("%s running on core %d with priority %d\r\n", pcTaskGetTaskName(NULL), xPortGetCoreID(), uxTaskPriorityGet(NULL));
     // TickType_t xLastWakeTime = xTaskGetTickCount();
     for (;;)
     {
         update_ui();
         lv_timer_handler();
-
         vTaskDelay(1);
         // vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));
     }
@@ -67,7 +90,7 @@ void setup()
     Serial.begin(115200);
     Serial.setDebugOutput(true);
 
-    Serial.printf("Arduino Core running on core %d\r\n", xPortGetCoreID());
+    Serial.printf("%s running on core %d with priority %d\r\n", pcTaskGetTaskName(NULL), xPortGetCoreID(), uxTaskPriorityGet(NULL));
 
     set_littlefs();
 
@@ -96,7 +119,7 @@ void setup()
         "Task2",   /* name of task. */
         10240,     /* Stack size of task */
         NULL,      /* parameter of the task */
-        2,         /* priority of the task */
+        3,         /* priority of the task */
         &Task2,    /* Task handle to keep track of created task */
         0);        /* pin task to core 0 */
 
@@ -105,7 +128,7 @@ void setup()
         "Task3",   /* name of task. */
         10240,     /* Stack size of task */
         NULL,      /* parameter of the task */
-        1,         /* priority of the task */
+        3,         /* priority of the task */
         &Task3,    /* Task handle to keep track of created task */
         0);        /* pin task to core 0 */
 

@@ -1,13 +1,14 @@
 #include "tof.h"
 
-hw_timer_t *tim1;
+struct alarmlog_t alog[3];
 
-bool buzzer_Open = false;
-bool buzzer_req_off = false;
+hw_timer_t *shinelight::timer = NULL;
+uint8_t shinelight::IsOn = false;
+uint8_t shinelight::ReqOff = false;
 
-void IRAM_ATTR onTim1()
+void shinelight::onTimerOut()
 {
-    buzzer_req_off = true;
+    ReqOff = true;
 }
 
 shinelight::shinelight(uint8_t timerNum, uint8_t pin, uint8_t channel, uint8_t resolution)
@@ -16,8 +17,8 @@ shinelight::shinelight(uint8_t timerNum, uint8_t pin, uint8_t channel, uint8_t r
     this->channel = channel;
     this->resolution = resolution;
 
-    tim1 = timerBegin(timerNum, 80, true);
-    timerAttachInterrupt(tim1, &onTim1, true);
+    timer = timerBegin(timerNum, 80, true);
+    timerAttachInterrupt(timer, &onTimerOut, true);
 
     ledcSetup(channel, cg.alarm.freq, resolution);
     ledcAttachPin(pin, channel);
@@ -31,31 +32,24 @@ shinelight::~shinelight()
 
 void shinelight::open()
 {
-    if (buzzer_Open)
-        timerWrite(tim1, 0);
+    if (IsOn)
+        timerWrite(timer, 0);
 
     else
     {
         ledcWrite(channel, cg.alarm.dutyCycle);
-        buzzer_Open = true;
-        timerAlarmWrite(tim1, cg.alarm.ms * 1000, false); // value in microseconds
-        timerWrite(tim1, 0);
-        timerAlarmEnable(tim1);
+        IsOn = true;
+        timerAlarmWrite(timer, cg.alarm.ms * 1000, false); // value in microseconds
+        timerWrite(timer, 0);
+        timerAlarmEnable(timer);
     }
 }
 
 void shinelight::close()
 {
     ledcWrite(channel, 0);
-    buzzer_Open = false;
-    timerAlarmDisable(tim1);
-    buzzer_req_off = false;
-}
-
-void shinelight::check()
-{
-    if (buzzer_req_off)
-        close();
+    IsOn = false;
+    timerAlarmDisable(timer);
 }
 
 void shinelight::writeCycle(uint32_t cycle)
@@ -118,9 +112,9 @@ constexpr const char deviceInfo[] = {0x55, 0x01, 0x00, 0x00, 0x00, 0x00, 0xD3, 0
 constexpr const char byteOutPut[] = {0x55, 0x04, 0x00, 0x00, 0x00, 0x01, 0x2E, 0xAA};
 constexpr const char pixhawkOutPut[] = {0x55, 0x04, 0x00, 0x00, 0x00, 0x02, 0x7D, 0xAA};
 
-SKPTOFLIDAR::SKPTOFLIDAR(uint8_t id, HardwareSerial *u, u_long baudrate, int8_t rx, int8_t tx)
+SKPTOFLIDAR::SKPTOFLIDAR(uint8_t tid, HardwareSerial *u, u_long baudrate, int8_t rx, int8_t tx)
 {
-    _id = id;
+    this->tid = tid;
     uart = u;
     uart->begin(baudrate, SERIAL_8N1, rx, tx);
     uart->write(AutoMode, sizeof(AutoMode));
@@ -151,36 +145,52 @@ void SKPTOFLIDAR::print_buffs()
 
 uint8_t SKPTOFLIDAR::read_tof()
 {
-    if (uart->available() > 8)
+    // 0x55 0x07 0x00 0x00 0x05 0xAD 0x9C 0xAA
+    //  frame header[55] Key[07] system status[00] Distance[00 05 AD] CRC[9C] frame end[AA]
+
+    if (uart->available() < 8)
+        return false;
+
+    if (uart->peek() == 0x55)
     {
         uart->readBytes(buffs, 8);
-        // print_buffs();
-        if (buffs[0] == 0x55 && buffs[7] == 0xAA && digest(buffs))
+        if (buffs[1] == 0x07 && buffs[2] == 0x00 && buffs[7] == 0xAA && digest(buffs))
         {
-            // checksum fail stop at here.
-            if (buffs[1] == 0x07 && buffs[2] == 0x00)
-            {
-                // further assert.
-                uint8_t tmp[4] = {buffs[5], buffs[4], buffs[3], buffs[2]};
-                memcpy(&distance, &tmp, 4);
-                // Serial.println(distance);
-                return true;
-            }
+            uint8_t tmp[4] = {buffs[5], buffs[4], buffs[3], buffs[2]};
+            memcpy(&distance, &tmp, 4);
+            // Serial.println(distance);
+
+            return true;
         }
+        else
+            // format error
+            print_buffs();
     }
+    else
+        uart->read(); // read first byte of incoming serial data
+
     return false;
 }
 
-uint8_t SKPTOFLIDAR::handler()
+uint8_t SKPTOFLIDAR::handler(uint32_t limit)
 {
     if (!read_tof())
+        // didn't receive new data
         return false;
 
-    if (_id == 1 && distance < cg.alarm.tof1)
-        return true;
+    if (distance < limit)
+    {
+        if (tid > TOFDEVICENUMBER)
+            tid = 0;
 
-    if (_id == 2 && distance < cg.alarm.tof2)
+        if (!alog[tid].onpub)
+        {
+            alog[tid].distance = distance;
+            alog[tid].limit = limit;
+            alog[tid].onpub = true;
+        }
         return true;
+    }
 
     return false;
 }
