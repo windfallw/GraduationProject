@@ -156,9 +156,9 @@ void IP5108::getBattState()
 
 void IP5108::update()
 {
-    current = getBattCurrent();
-    voltage = getBattVoltage();
-    voltageOc = getBattOcVoltage();
+    current = (int)round(getBattCurrent());
+    voltage = (int)round(getBattVoltage());
+    voltageOc = (int)round(getBattOcVoltage());
 }
 
 void IP5108::scan_i2c()

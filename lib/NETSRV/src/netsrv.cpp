@@ -1,6 +1,6 @@
 #include "netsrv.h"
 
-constexpr const char *TEXT_MIMETYPE = "text/plain";
+static constexpr const char *TEXT_MIMETYPE = "text/plain";
 
 DNSServer dnsServer;
 AsyncWebServer server(80);
@@ -8,9 +8,9 @@ AsyncElegantOtaClass AsyncElegantOTA;
 
 AsyncMqttClient mqttClient;
 
-static hw_timer_t *tim2;
+static hw_timer_t *timer;
 
-void IRAM_ATTR onTim2()
+static void IRAM_ATTR onTimerOut()
 {
     CONN_SIGN.WiFi = true;
 }
@@ -457,7 +457,7 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
             doc["ms"] = cg.alarm.ms;
 
             serializeJson(doc, msg);
-            Serial.println(msg);
+            // Serial.println(msg);
             mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, msg.c_str());
         }
     }
@@ -487,10 +487,10 @@ void set_mqtt()
 
 void set_checkTimer(uint8_t timerNum)
 {
-    tim2 = timerBegin(timerNum, 80, true);
-    timerAttachInterrupt(tim2, &onTim2, true);
+    timer = timerBegin(timerNum, 80, true);
+    timerAttachInterrupt(timer, &onTimerOut, true);
     /* autoreload = true
     value in microseconds so 10,000,000 = 10s */
-    timerAlarmWrite(tim2, CONN_SIGN.checkMicroSec, true);
-    timerAlarmEnable(tim2);
+    timerAlarmWrite(timer, CONN_SIGN.checkMicroSec, true);
+    timerAlarmEnable(timer);
 }

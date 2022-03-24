@@ -22,6 +22,7 @@ lv_indev_t *indev;
 
 lv_obj_t *cz_label;
 lv_obj_t *wifi_label;
+lv_obj_t *battery_label;
 lv_obj_t *battery_level_label;
 
 #if LV_USE_LOG != 0
@@ -147,9 +148,15 @@ void set_ui()
     lv_label_set_text(cz_label, "当前:  mm");
 
     wifi_label = lv_label_create(lv_scr_act());
-    lv_obj_align(wifi_label, LV_ALIGN_TOP_LEFT, 10, 10);
+    lv_obj_align(wifi_label, LV_ALIGN_TOP_LEFT, 5, 5);
     lv_obj_set_style_text_font(wifi_label, &lv_font_montserrat_20, 0);
     lv_label_set_text(wifi_label, LV_SYMBOL_WIFI);
+
+    battery_label = lv_label_create(lv_scr_act());
+    lv_obj_align(battery_label, LV_ALIGN_TOP_RIGHT, -5, 5);
+    lv_obj_set_style_text_font(battery_label, &lv_font_montserrat_20, 0);
+    lv_label_set_recolor(battery_label, true);
+    lv_label_set_text(battery_label, "#FFFF00 \xEF\x83\xA7# \xEF\x89\x80 100%");
 
     battery_level_label = lv_label_create(lv_scr_act());
     lv_obj_align(battery_level_label, LV_ALIGN_BOTTOM_MID, 0, -30);

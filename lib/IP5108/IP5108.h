@@ -1,5 +1,5 @@
-#ifndef __IP5018_H
-#define __IP5018_H
+#ifndef __IP5108_H
+#define __IP5108_H
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -331,7 +331,7 @@ private:
 
 public:
     byte Address;
-    float current, voltage, voltageOc;
+    uint32_t current, voltage, voltageOc;
     TwoWire *i2c;
 
     IP5108(TwoWire *i, int sdaPin, int sclPin, uint32_t frequency);

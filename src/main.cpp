@@ -20,9 +20,9 @@ shinelight buzzer = shinelight(0, 13, 0);
 
 void update_ui()
 {
+
     lv_label_set_text_fmt(cz_label, "当前: %d mm %d mm", skp1.distance, skp2.distance);
-    lv_label_set_text_fmt(battery_level_label, "%d mA %d mV %d mV", (int)round(bms.current), (int)round(bms.voltage), (int)round(bms.voltageOc));
-    // Serial.printf("%d mA %d mV %d mV\r\n", (int)round(bms.current), (int)round(bms.voltage), (int)round(bms.voltageOc));
+    lv_label_set_text_fmt(battery_level_label, "%d mA %d mV %d mV", bms.current, bms.voltage, bms.voltageOc);
 }
 
 void Task1code(void *pvParameters)
