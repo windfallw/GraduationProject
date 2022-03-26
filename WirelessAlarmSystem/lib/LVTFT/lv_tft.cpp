@@ -1,4 +1,5 @@
 #include "lv_tft.h"
+// #include "charging.c"
 
 #define ROTARY_ENCODER_BUTTON_PIN 25
 #define ROTARY_ENCODER_A_PIN 26
@@ -160,6 +161,11 @@ void set_ui()
 
     battery_level_label = lv_label_create(lv_scr_act());
     lv_obj_align(battery_level_label, LV_ALIGN_BOTTOM_MID, 0, -30);
+
+    // LV_IMG_DECLARE(charging);
+    // lv_obj_t *img = lv_gif_create(lv_scr_act());
+    // lv_gif_set_src(img, &charging);
+    // lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);
 
     lv_group_add_obj(g, btn1);
     lv_group_add_obj(g, btn2);

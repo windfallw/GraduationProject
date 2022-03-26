@@ -39,7 +39,7 @@
  *=========================*/
 
 /*1: use custom malloc/free, 0: use the built-in `lv_mem_alloc()` and `lv_mem_free()`*/
-#define LV_MEM_CUSTOM      0
+#define LV_MEM_CUSTOM      1
 #if LV_MEM_CUSTOM == 0
 /*Size of the memory available for `lv_mem_alloc()` in bytes (>= 2kB)*/
 #  define LV_MEM_SIZE    (32U * 1024U)          /*[bytes]*/
@@ -498,12 +498,15 @@ e.g. "stm32f769xx.h" or "stm32f429xx.h"*/
 /*A layout similar to Grid in CSS.*/
 #define LV_USE_GRID     1
 
+
+#define LV_USE_GIF      1
+
 /*==================
 * EXAMPLES
 *==================*/
 
 /*Enable the examples to be built with the library*/
-#define LV_BUILD_EXAMPLES   1
+#define LV_BUILD_EXAMPLES   0
 
 /*--END OF LV_CONF_H--*/
 
