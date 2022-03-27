@@ -148,10 +148,9 @@ void IP5108::getBattState()
     // 110: ��糬ʱ״̬ 192
 
     uint8_t Reg_Byte = readReg(Reg_READ0);
-    uint8_t State_Byte = Reg_Byte & Reg_READ0_BIT_ChargeStatusFlags;
-    bool ChargeFinish = (Reg_Byte & Reg_READ0_BIT_ChargeFinishFlag) == 0 ? false : true;
-    Serial.printf("%d flag\r\n", State_Byte);
-    Serial.println(Reg_Byte);
+    State = Reg_Byte & Reg_READ0_BIT_ChargeStatusFlags;
+    isCharging = (Reg_Byte & Reg_READ0_BIT_Chgop) == 0 ? false : true;
+    ChargeFinish = (Reg_Byte & Reg_READ0_BIT_ChargeFinishFlag) == 0 ? false : true;
 }
 
 void IP5108::update()
@@ -159,6 +158,22 @@ void IP5108::update()
     current = (int)round(getBattCurrent());
     voltage = (int)round(getBattVoltage());
     voltageOc = (int)round(getBattOcVoltage());
+
+    getBattState();
+
+    if (voltageOc >= 4300)
+    {
+        if (isCharging)
+        {
+            percent = ChargeFinish ? 100 : 99;
+            return;
+        }
+        percent = 100;
+    }
+    else if (voltageOc <= 3000)
+        percent = 0;
+    else
+        percent = (int)round((voltageOc - 3000) / 13);
 }
 
 void IP5108::scan_i2c()

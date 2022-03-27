@@ -331,8 +331,17 @@ private:
 
 public:
     byte Address;
-    uint32_t current, voltage, voltageOc;
     TwoWire *i2c;
+
+    uint32_t current;
+    uint32_t voltage;
+    uint32_t voltageOc;
+
+    uint8_t State;
+
+    uint8_t isCharging;
+    uint8_t ChargeFinish;
+    uint8_t percent;
 
     IP5108(TwoWire *i, int sdaPin, int sclPin, uint32_t frequency);
     ~IP5108();

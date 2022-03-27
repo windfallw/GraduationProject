@@ -20,8 +20,29 @@ shinelight buzzer = shinelight(0, 13, 0);
 
 void update_ui()
 {
+    lv_label_set_text_fmt(wifi_label, "STA %s | AP %s", WiFi.SSID().c_str(), WiFi.softAPSSID().c_str());
+    lv_label_set_text_fmt(battery_label, "%d%%", bms.percent);
+
+    if (bms.percent >= 80)
+        lv_label_set_text(battery_ico, LV_SYMBOL_BATTERY_FULL);
+    else if (bms.percent >= 60)
+        lv_label_set_text(battery_ico, LV_SYMBOL_BATTERY_3);
+    else if (bms.percent >= 40)
+        lv_label_set_text(battery_ico, LV_SYMBOL_BATTERY_2);
+    else if (bms.percent >= 20)
+        lv_label_set_text(battery_ico, LV_SYMBOL_BATTERY_1);
+    else
+        lv_label_set_text(battery_ico, LV_SYMBOL_BATTERY_EMPTY);
+
+    if (bms.isCharging)
+        lv_obj_clear_flag(battery_cg_ico, LV_OBJ_FLAG_HIDDEN);
+    else
+        lv_obj_add_flag(battery_cg_ico, LV_OBJ_FLAG_HIDDEN);
+
     lv_label_set_text_fmt(tof_label, "当前: %d mm %d mm", skp1.distance, skp2.distance);
-    // lv_label_set_text_fmt(battery_level_label, "%d mA %d mV %d mV", bms.current, bms.voltage, bms.voltageOc);
+    lv_label_set_text_fmt(bt_label, "%d mA %d mV %d mV %d", bms.current, bms.voltage, bms.voltageOc, bms.State);
+
+    lv_obj_align_all();
 }
 
 void Task1code(void *pvParameters)

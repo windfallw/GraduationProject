@@ -21,13 +21,15 @@ lv_color_t buf[screenWidth * 10];
 lv_disp_t *disp;
 lv_indev_t *indev;
 
-lv_obj_t *wifi_icon;
+lv_obj_t *wifi_ico;
 lv_obj_t *wifi_label;
 
-lv_obj_t *battery_icon;
 lv_obj_t *battery_label;
+lv_obj_t *battery_ico;
+lv_obj_t *battery_cg_ico;
 
 lv_obj_t *tof_label;
+lv_obj_t *bt_label;
 
 #if LV_USE_LOG != 0
 void my_log_cb(const char *buf)
@@ -109,37 +111,47 @@ void set_disp_drv()
 
 void set_ui()
 {
-    /* Ui design */
-    wifi_icon = lv_label_create(lv_scr_act());
-    lv_obj_align(wifi_icon, LV_ALIGN_TOP_LEFT, 5, 5);
-    lv_obj_set_style_text_font(wifi_icon, &lv_font_montserrat_14, 0);
-    lv_label_set_text(wifi_icon, LV_SYMBOL_WIFI);
+    /* Ui */
+    wifi_ico = lv_label_create(lv_scr_act());
+    lv_obj_set_style_text_font(wifi_ico, &lv_font_montserrat_12, 0);
+    lv_label_set_text(wifi_ico, LV_SYMBOL_WIFI);
 
     wifi_label = lv_label_create(lv_scr_act());
-    lv_obj_align_to(wifi_label, wifi_icon, LV_ALIGN_OUT_RIGHT_MID, 5, 0);
     lv_obj_set_style_text_font(wifi_label, &lv_font_montserrat_12, 0);
-    lv_label_set_text(wifi_label, "WiFi");
-
-    battery_icon = lv_label_create(lv_scr_act());
-    lv_obj_align(battery_icon, LV_ALIGN_TOP_RIGHT, -5, 5);
-    lv_obj_set_style_text_font(battery_icon, &lv_font_montserrat_14, 0);
-    lv_label_set_recolor(battery_icon, true);
-    // FFFF00 yellow
-    lv_label_set_text_fmt(battery_icon, "#00FF00 %s# %s", LV_SYMBOL_CHARGE, LV_SYMBOL_BATTERY_FULL);
-    // lv_label_set_text(battery_icon, LV_SYMBOL_BATTERY_FULL);
 
     battery_label = lv_label_create(lv_scr_act());
-    lv_obj_align_to(battery_label, battery_icon, LV_ALIGN_OUT_LEFT_MID, -5, 0);
     lv_obj_set_style_text_font(battery_label, &lv_font_montserrat_12, 0);
-    lv_label_set_text(battery_label, "100%");
+
+    battery_ico = lv_label_create(lv_scr_act());
+    lv_obj_set_style_text_font(battery_ico, &lv_font_montserrat_12, 0);
+
+    battery_cg_ico = lv_label_create(lv_scr_act());
+    lv_obj_set_style_text_font(battery_cg_ico, &lv_font_montserrat_12, 0);
+    lv_label_set_recolor(battery_cg_ico, true);
+    lv_label_set_text(battery_cg_ico, "#00FF00 " LV_SYMBOL_CHARGE);
+    lv_obj_add_flag(battery_cg_ico, LV_OBJ_FLAG_HIDDEN);
 
     /* rotary encoder */
     lv_group_t *g = lv_group_create();
     lv_indev_set_group(indev, g);
+    // lv_group_add_obj(g, btn1);
 
     tof_label = lv_label_create(lv_scr_act());
-    lv_obj_align(tof_label, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_text_font(tof_label, &lv_font_simsun_16_cjk, 0);
 
-    // lv_group_add_obj(g, btn1);
+    bt_label = lv_label_create(lv_scr_act());
+
+    lv_obj_align_all();
+}
+
+void lv_obj_align_all()
+{
+    lv_obj_align(wifi_ico, LV_ALIGN_TOP_LEFT, 5, 5);
+    lv_obj_align_to(wifi_label, wifi_ico, LV_ALIGN_OUT_RIGHT_MID, 0, 0);
+    lv_obj_align(battery_label, LV_ALIGN_TOP_RIGHT, -5, 5);
+    lv_obj_align_to(battery_ico, battery_label, LV_ALIGN_OUT_LEFT_MID, 0, 0);
+    lv_obj_align_to(battery_cg_ico, battery_ico, LV_ALIGN_OUT_LEFT_MID, 0, 0);
+
+    lv_obj_align(tof_label, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_align(bt_label, LV_ALIGN_BOTTOM_MID, 0, -10);
 }
