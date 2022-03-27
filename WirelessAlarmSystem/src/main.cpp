@@ -20,9 +20,8 @@ shinelight buzzer = shinelight(0, 13, 0);
 
 void update_ui()
 {
-
-    lv_label_set_text_fmt(cz_label, "当前: %d mm %d mm", skp1.distance, skp2.distance);
-    lv_label_set_text_fmt(battery_level_label, "%d mA %d mV %d mV", bms.current, bms.voltage, bms.voltageOc);
+    lv_label_set_text_fmt(tof_label, "当前: %d mm %d mm", skp1.distance, skp2.distance);
+    // lv_label_set_text_fmt(battery_level_label, "%d mA %d mV %d mV", bms.current, bms.voltage, bms.voltageOc);
 }
 
 void Task1code(void *pvParameters)
@@ -99,8 +98,8 @@ void setup()
 
     bms.set_up();
 
-    set_disp_drv();
     set_rotary_encoder();
+    set_disp_drv();
     set_ui();
 
     /*  defalut ESP_TASK_PRIO_MAX = configMAX_PRIORITIES = 25

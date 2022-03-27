@@ -12,8 +12,8 @@ AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(ROTARY_ENCODER_A_PIN, 
 TFT_eSPI tft = TFT_eSPI();
 
 // TFT_ESPI reverse height and width in lvgl
-const uint32_t screenWidth = TFT_HEIGHT;
-const uint32_t screenHeight = TFT_WIDTH;
+static constexpr const uint32_t screenWidth = TFT_HEIGHT;
+static constexpr const uint32_t screenHeight = TFT_WIDTH;
 
 lv_disp_draw_buf_t draw_buf;
 lv_color_t buf[screenWidth * 10];
@@ -21,10 +21,13 @@ lv_color_t buf[screenWidth * 10];
 lv_disp_t *disp;
 lv_indev_t *indev;
 
-lv_obj_t *cz_label;
+lv_obj_t *wifi_icon;
 lv_obj_t *wifi_label;
+
+lv_obj_t *battery_icon;
 lv_obj_t *battery_label;
-lv_obj_t *battery_level_label;
+
+lv_obj_t *tof_label;
 
 #if LV_USE_LOG != 0
 void my_log_cb(const char *buf)
@@ -72,18 +75,19 @@ void encoder_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
 
 void set_disp_drv()
 {
+    /*Initialize lvgl*/
     lv_init();
 
 #if LV_USE_LOG != 0
     lv_log_register_print_cb(my_log_cb);
 #endif
 
-    tft.begin();
-    tft.setRotation(1);
-
     lv_disp_draw_buf_init(&draw_buf, buf, NULL, screenWidth * 10);
 
     /*Initialize the display*/
+    tft.begin();
+    tft.setRotation(1);
+
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.hor_res = screenWidth;
@@ -103,70 +107,39 @@ void set_disp_drv()
     indev = lv_indev_drv_register(&indev_drv);
 }
 
-void event_handler(lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-
-    if (code == LV_EVENT_CLICKED)
-    {
-        LV_LOG_USER("Clicked");
-    }
-    else if (code == LV_EVENT_VALUE_CHANGED)
-    {
-        LV_LOG_USER("Toggled");
-    }
-}
-
 void set_ui()
 {
     /* Ui design */
+    wifi_icon = lv_label_create(lv_scr_act());
+    lv_obj_align(wifi_icon, LV_ALIGN_TOP_LEFT, 5, 5);
+    lv_obj_set_style_text_font(wifi_icon, &lv_font_montserrat_14, 0);
+    lv_label_set_text(wifi_icon, LV_SYMBOL_WIFI);
+
+    wifi_label = lv_label_create(lv_scr_act());
+    lv_obj_align_to(wifi_label, wifi_icon, LV_ALIGN_OUT_RIGHT_MID, 5, 0);
+    lv_obj_set_style_text_font(wifi_label, &lv_font_montserrat_12, 0);
+    lv_label_set_text(wifi_label, "WiFi");
+
+    battery_icon = lv_label_create(lv_scr_act());
+    lv_obj_align(battery_icon, LV_ALIGN_TOP_RIGHT, -5, 5);
+    lv_obj_set_style_text_font(battery_icon, &lv_font_montserrat_14, 0);
+    lv_label_set_recolor(battery_icon, true);
+    // FFFF00 yellow
+    lv_label_set_text_fmt(battery_icon, "#00FF00 %s# %s", LV_SYMBOL_CHARGE, LV_SYMBOL_BATTERY_FULL);
+    // lv_label_set_text(battery_icon, LV_SYMBOL_BATTERY_FULL);
+
+    battery_label = lv_label_create(lv_scr_act());
+    lv_obj_align_to(battery_label, battery_icon, LV_ALIGN_OUT_LEFT_MID, -5, 0);
+    lv_obj_set_style_text_font(battery_label, &lv_font_montserrat_12, 0);
+    lv_label_set_text(battery_label, "100%");
+
+    /* rotary encoder */
     lv_group_t *g = lv_group_create();
     lv_indev_set_group(indev, g);
 
-    lv_obj_t *label;
+    tof_label = lv_label_create(lv_scr_act());
+    lv_obj_align(tof_label, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_style_text_font(tof_label, &lv_font_simsun_16_cjk, 0);
 
-    lv_obj_t *btn1 = lv_btn_create(lv_scr_act());
-    lv_obj_add_event_cb(btn1, event_handler, LV_EVENT_ALL, NULL);
-    lv_obj_align(btn1, LV_ALIGN_CENTER, 0, -40);
-
-    label = lv_label_create(btn1);
-    lv_label_set_text(label, "Button");
-    lv_obj_center(label);
-
-    lv_obj_t *btn2 = lv_btn_create(lv_scr_act());
-    lv_obj_add_event_cb(btn2, event_handler, LV_EVENT_ALL, NULL);
-    lv_obj_align(btn2, LV_ALIGN_CENTER, 0, 40);
-    lv_obj_add_flag(btn2, LV_OBJ_FLAG_CHECKABLE);
-    lv_obj_set_height(btn2, LV_SIZE_CONTENT);
-
-    label = lv_label_create(btn2);
-    lv_label_set_text(label, "Toggle");
-    lv_obj_center(label);
-
-    cz_label = lv_label_create(lv_scr_act());
-    lv_obj_align(cz_label, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_set_style_text_font(cz_label, &lv_font_simsun_16_cjk, 0);
-    lv_label_set_text(cz_label, "当前:  mm");
-
-    wifi_label = lv_label_create(lv_scr_act());
-    lv_obj_align(wifi_label, LV_ALIGN_TOP_LEFT, 5, 5);
-    lv_obj_set_style_text_font(wifi_label, &lv_font_montserrat_20, 0);
-    lv_label_set_text(wifi_label, LV_SYMBOL_WIFI);
-
-    battery_label = lv_label_create(lv_scr_act());
-    lv_obj_align(battery_label, LV_ALIGN_TOP_RIGHT, -5, 5);
-    lv_obj_set_style_text_font(battery_label, &lv_font_montserrat_20, 0);
-    lv_label_set_recolor(battery_label, true);
-    lv_label_set_text(battery_label, "#FFFF00 \xEF\x83\xA7# \xEF\x89\x80 100%");
-
-    battery_level_label = lv_label_create(lv_scr_act());
-    lv_obj_align(battery_level_label, LV_ALIGN_BOTTOM_MID, 0, -30);
-
-    // LV_IMG_DECLARE(charging);
-    // lv_obj_t *img = lv_gif_create(lv_scr_act());
-    // lv_gif_set_src(img, &charging);
-    // lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);
-
-    lv_group_add_obj(g, btn1);
-    lv_group_add_obj(g, btn2);
+    // lv_group_add_obj(g, btn1);
 }
