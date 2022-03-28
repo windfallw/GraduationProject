@@ -1,4 +1,4 @@
-#include "lvtft.h"
+#include "lv_ui.h"
 
 lv_obj_t *wifi_ico;
 lv_obj_t *wifi_label;
@@ -7,15 +7,12 @@ lv_obj_t *battery_label;
 lv_obj_t *battery_ico;
 lv_obj_t *battery_cg_ico;
 
-lv_obj_t *ui_Screen1;
-lv_obj_t *ui_Screen2;
-
-lv_obj_t *ui_Image1;
-lv_obj_t *ui_Image2;
-lv_obj_t *ui_Image3;
+lv_obj_t *tof_label;
+lv_obj_t *bt_label;
 
 void set_ui()
 {
+    /* Ui */
     wifi_ico = lv_label_create(lv_scr_act());
     lv_obj_set_style_text_font(wifi_ico, &lv_font_montserrat_12, 0);
     lv_label_set_text(wifi_ico, LV_SYMBOL_WIFI);
@@ -35,22 +32,27 @@ void set_ui()
     lv_label_set_text(battery_cg_ico, "#00FF00 " LV_SYMBOL_CHARGE);
     lv_obj_add_flag(battery_cg_ico, LV_OBJ_FLAG_HIDDEN);
 
-    ui_Image1 = lv_img_create(lv_scr_act());
+    /* rotary encoder */
+    lv_group_t *g = lv_group_create();
+    lv_indev_set_group(indev, g);
+    // lv_group_add_obj(g, btn1);
 
-    lv_obj_set_width(ui_Image1, 64);
-    lv_obj_set_height(ui_Image1, 64);
+    tof_label = lv_label_create(lv_scr_act());
+    lv_obj_set_style_text_font(tof_label, &lv_font_simsun_16_cjk, 0);
 
-    lv_obj_set_x(ui_Image1, 0);
-    lv_obj_set_y(ui_Image1, -5);
+    bt_label = lv_label_create(lv_scr_act());
 
-    lv_obj_set_align(ui_Image1, LV_ALIGN_CENTER);
+    ui_align();
 }
 
-void lv_obj_align_all()
+void ui_align()
 {
     lv_obj_align(wifi_ico, LV_ALIGN_TOP_LEFT, 5, 5);
     lv_obj_align_to(wifi_label, wifi_ico, LV_ALIGN_OUT_RIGHT_MID, 0, 0);
     lv_obj_align(battery_label, LV_ALIGN_TOP_RIGHT, -5, 5);
     lv_obj_align_to(battery_ico, battery_label, LV_ALIGN_OUT_LEFT_MID, 0, 0);
     lv_obj_align_to(battery_cg_ico, battery_ico, LV_ALIGN_OUT_LEFT_MID, 0, 0);
+
+    lv_obj_align(tof_label, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_align(bt_label, LV_ALIGN_BOTTOM_MID, 0, -10);
 }

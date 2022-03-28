@@ -3,6 +3,13 @@
 
 #include "lvgl.h"
 
+extern lv_obj_t *ui_Screen1;
+extern lv_obj_t *ui_Screen2;
+
+extern lv_obj_t *ui_Image1;
+extern lv_obj_t *ui_Image2;
+extern lv_obj_t *ui_Image3;
+
 extern lv_obj_t *wifi_ico;
 extern lv_obj_t *wifi_label;
 
