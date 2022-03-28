@@ -20,8 +20,8 @@ extern shinelight buzzer;
 
 extern void update_ui();
 
-extern void Task1code(void *pvParameters);
-extern void Task2code(void *pvParameters);
-extern void Task3code(void *pvParameters);
+extern void Task1TOF(void *pvParameters);
+extern void Task2Scan(void *pvParameters);
+extern void Task3TFT(void *pvParameters);
 
 #endif

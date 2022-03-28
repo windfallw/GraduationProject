@@ -16,6 +16,7 @@ lv_obj_t *ui_Image3;
 
 void set_ui()
 {
+
     wifi_ico = lv_label_create(lv_scr_act());
     lv_obj_set_style_text_font(wifi_ico, &lv_font_montserrat_12, 0);
     lv_label_set_text(wifi_ico, LV_SYMBOL_WIFI);
@@ -35,18 +36,50 @@ void set_ui()
     lv_label_set_text(battery_cg_ico, "#00FF00 " LV_SYMBOL_CHARGE);
     lv_obj_add_flag(battery_cg_ico, LV_OBJ_FLAG_HIDDEN);
 
-    ui_Image1 = lv_img_create(lv_scr_act());
+    // LV_IMG_DECLARE(img_bulb_gif);
+    // lv_obj_t *img;
+    // img = lv_gif_create(lv_scr_act());
+    // lv_gif_set_src(img, &img_bulb_gif);
+    // lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);
 
-    lv_obj_set_width(ui_Image1, 64);
-    lv_obj_set_height(ui_Image1, 64);
+    LV_IMG_DECLARE(charging1);
+    LV_IMG_DECLARE(charging2);
+    LV_IMG_DECLARE(charging3);
+    LV_IMG_DECLARE(charging4);
+    LV_IMG_DECLARE(charging5);
+    LV_IMG_DECLARE(charging6);
+    LV_IMG_DECLARE(charging7);
+    LV_IMG_DECLARE(charging8);
+    LV_IMG_DECLARE(charging9);
+    LV_IMG_DECLARE(charging10);
+    LV_IMG_DECLARE(charging11);
+    LV_IMG_DECLARE(charging12);
+    static const lv_img_dsc_t *anim_imgs[12] = {
+        &charging1,
+        &charging2,
+        &charging3,
+        &charging4,
+        &charging5,
+        &charging6,
+        &charging7,
+        &charging8,
+        &charging9,
+        &charging10,
+        &charging11,
+        &charging12,
+    };
 
-    lv_obj_set_x(ui_Image1, 0);
-    lv_obj_set_y(ui_Image1, -5);
+    lv_obj_t *animimg0 = lv_animimg_create(lv_scr_act());
+    lv_obj_center(animimg0);
+    lv_animimg_set_src(animimg0, (lv_img_dsc_t **)anim_imgs, 12);
+    lv_animimg_set_duration(animimg0, 1000);
+    lv_animimg_set_repeat_count(animimg0, LV_ANIM_REPEAT_INFINITE);
+    lv_animimg_start(animimg0);
 
-    lv_obj_set_align(ui_Image1, LV_ALIGN_CENTER);
+    ui_align();
 }
 
-void lv_obj_align_all()
+void ui_align()
 {
     lv_obj_align(wifi_ico, LV_ALIGN_TOP_LEFT, 5, 5);
     lv_obj_align_to(wifi_label, wifi_ico, LV_ALIGN_OUT_RIGHT_MID, 0, 0);

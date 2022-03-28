@@ -2,7 +2,6 @@
 #define LVUIH
 
 #include "lv_tft.h"
-// #include "charging.c"
 
 extern lv_obj_t *wifi_ico;
 extern lv_obj_t *wifi_label;

@@ -18,6 +18,6 @@ extern lv_obj_t *battery_ico;
 extern lv_obj_t *battery_cg_ico;
 
 extern void set_ui();
-extern void lv_obj_align_all();
+extern void ui_align();
 
 #endif

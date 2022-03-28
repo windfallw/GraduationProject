@@ -1,3 +1,5 @@
+#include <SDL2/SDL.h>
+
 #include "lvgl.h"
 #include "app_hal.h"
 #include "lvtft.h"
@@ -15,11 +17,15 @@ int main(void)
 
   while (1)
   {
-    for (int i = 0; i <= 100; i++)
-    {
-      lv_label_set_text_fmt(battery_label, "%d%%", i);
-      lv_obj_align_all();
-      lv_task_handler();
-    }
+    lv_task_handler();
+    SDL_Delay(5);
+
+    // for (int i = 0; i <= 100; i++)
+    // {
+    //   lv_task_handler();
+    //   SDL_Delay(5);
+    //   lv_label_set_text_fmt(battery_label, "%d%%", i);
+    //   ui_align();
+    // }
   }
 }

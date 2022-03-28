@@ -32,6 +32,40 @@ void set_ui()
     lv_label_set_text(battery_cg_ico, "#00FF00 " LV_SYMBOL_CHARGE);
     lv_obj_add_flag(battery_cg_ico, LV_OBJ_FLAG_HIDDEN);
 
+    LV_IMG_DECLARE(charging1);
+    LV_IMG_DECLARE(charging2);
+    LV_IMG_DECLARE(charging3);
+    LV_IMG_DECLARE(charging4);
+    LV_IMG_DECLARE(charging5);
+    LV_IMG_DECLARE(charging6);
+    LV_IMG_DECLARE(charging7);
+    LV_IMG_DECLARE(charging8);
+    LV_IMG_DECLARE(charging9);
+    LV_IMG_DECLARE(charging10);
+    LV_IMG_DECLARE(charging11);
+    LV_IMG_DECLARE(charging12);
+    static const lv_img_dsc_t *anim_imgs[12] = {
+        &charging1,
+        &charging2,
+        &charging3,
+        &charging4,
+        &charging5,
+        &charging6,
+        &charging7,
+        &charging8,
+        &charging9,
+        &charging10,
+        &charging11,
+        &charging12,
+    };
+
+    lv_obj_t *animimg0 = lv_animimg_create(lv_scr_act());
+    lv_obj_center(animimg0);
+    lv_animimg_set_src(animimg0, (lv_img_dsc_t **)anim_imgs, 12);
+    lv_animimg_set_duration(animimg0, 1000);
+    lv_animimg_set_repeat_count(animimg0, LV_ANIM_REPEAT_INFINITE);
+    lv_animimg_start(animimg0);
+
     /* rotary encoder */
     lv_group_t *g = lv_group_create();
     lv_indev_set_group(indev, g);

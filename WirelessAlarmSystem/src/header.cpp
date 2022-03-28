@@ -14,7 +14,7 @@ All pins that can act as outputs can be used as PWM pins.
 timerNum = 0 Pin = 13 channel = 0 resolution = 8 */
 shinelight buzzer = shinelight(0, 13, 0);
 
-void Task1code(void *pvParameters)
+void Task1TOF(void *pvParameters)
 {
     Serial.printf("%s running on core %d with priority %d\r\n", pcTaskGetTaskName(NULL), xPortGetCoreID(), uxTaskPriorityGet(NULL));
     for (;;)
@@ -26,7 +26,7 @@ void Task1code(void *pvParameters)
     }
 }
 
-void Task2code(void *pvParameters)
+void Task2Scan(void *pvParameters)
 {
     Serial.printf("%s running on core %d with priority %d\r\n", pcTaskGetTaskName(NULL), xPortGetCoreID(), uxTaskPriorityGet(NULL));
     for (;;)
@@ -61,15 +61,42 @@ void Task2code(void *pvParameters)
     }
 }
 
-void Task3code(void *pvParameters)
+void Task3TFT(void *pvParameters)
 {
     Serial.printf("%s running on core %d with priority %d\r\n", pcTaskGetTaskName(NULL), xPortGetCoreID(), uxTaskPriorityGet(NULL));
     // TickType_t xLastWakeTime = xTaskGetTickCount();
     for (;;)
     {
         update_ui();
-        lv_timer_handler();
+        lv_task_handler();
         vTaskDelay(1);
         // vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));
     }
+}
+
+void update_ui()
+{
+    lv_label_set_text_fmt(wifi_label, "STA %s | AP %s", WiFi.SSID().c_str(), WiFi.softAPSSID().c_str());
+    lv_label_set_text_fmt(battery_label, "%d%%", bms.percent);
+
+    if (bms.percent >= 80)
+        lv_label_set_text(battery_ico, LV_SYMBOL_BATTERY_FULL);
+    else if (bms.percent >= 60)
+        lv_label_set_text(battery_ico, LV_SYMBOL_BATTERY_3);
+    else if (bms.percent >= 40)
+        lv_label_set_text(battery_ico, LV_SYMBOL_BATTERY_2);
+    else if (bms.percent >= 20)
+        lv_label_set_text(battery_ico, LV_SYMBOL_BATTERY_1);
+    else
+        lv_label_set_text(battery_ico, LV_SYMBOL_BATTERY_EMPTY);
+
+    if (bms.isCharging)
+        lv_obj_clear_flag(battery_cg_ico, LV_OBJ_FLAG_HIDDEN);
+    else
+        lv_obj_add_flag(battery_cg_ico, LV_OBJ_FLAG_HIDDEN);
+
+    lv_label_set_text_fmt(tof_label, "当前: %d mm %d mm", skp1.distance, skp2.distance);
+    lv_label_set_text_fmt(bt_label, "%d mA %d mV %d mV %d", bms.current, bms.voltage, bms.voltageOc, bms.State);
+
+    ui_align();
 }
