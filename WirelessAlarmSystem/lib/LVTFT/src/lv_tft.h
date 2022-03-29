@@ -13,6 +13,6 @@ extern lv_disp_t *disp;
 extern lv_indev_t *indev;
 
 extern void set_rotary_encoder();
-extern void set_disp_drv();
+extern void set_lv_drv();
 
 #endif

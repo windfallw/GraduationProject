@@ -13,7 +13,7 @@ void setup()
     bms.set_up();
 
     set_rotary_encoder();
-    set_disp_drv();
+    set_lv_drv();
     set_ui();
 
     /*  defalut ESP_TASK_PRIO_MAX = configMAX_PRIORITIES = 25
