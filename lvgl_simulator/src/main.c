@@ -17,7 +17,6 @@ int main(void)
   lv_label_set_text(wifi_txt, "STA ESPSTA | AP ESPAP");
   lv_label_set_text(battery_level_ico, LV_SYMBOL_BATTERY_FULL);
 
-  lv_label_set_text(battery_lightning_ico, "#08ffc8 " LV_SYMBOL_CHARGE);
   lv_obj_clear_flag(battery_lightning_ico, LV_OBJ_FLAG_HIDDEN);
 
   while (1)

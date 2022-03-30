@@ -13,8 +13,12 @@ extern lv_obj_t *battery_level_txt;
 extern lv_obj_t *battery_level_ico;
 extern lv_obj_t *battery_lightning_ico;
 
+/* Bottom Status Bar */
+extern lv_obj_t *bottom_status_bar;
+
 /* Main Screen */
 extern lv_obj_t *main_screen;
+extern lv_obj_t *main_screen_bg;
 
 /* charge Screen */
 extern lv_obj_t *charge_screen;
