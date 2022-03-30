@@ -13,7 +13,7 @@ IP5108::~IP5108()
 {
 }
 
-void IP5108::set_up()
+void IP5108::setup()
 {
     writeRegBit(SYS_CTL0, SYS_CTL0_BIT_FlashLight, false);
     writeRegBit(SYS_CTL0, SYS_CTL0_BIT_Light, false);
@@ -149,6 +149,7 @@ void IP5108::getBattState()
 
     uint8_t Reg_Byte = readReg(Reg_READ0);
     State = Reg_Byte & Reg_READ0_BIT_ChargeStatusFlags;
+    
     isCharging = State == 0 ? false : true;
     ChargeFinish = (Reg_Byte & Reg_READ0_BIT_ChargeFinishFlag) == 0 ? false : true;
 }

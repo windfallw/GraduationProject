@@ -3,21 +3,26 @@
 
 #include "lvgl.h"
 
-/* mainScreen */
-extern lv_obj_t *mainScreen;
+/* Top Status Bar */
+extern lv_obj_t *top_status_bar;
 
 extern lv_obj_t *wifi_ico;
-extern lv_obj_t *wifi_label;
+extern lv_obj_t *wifi_txt;
 
-extern lv_obj_t *battery_label;
-extern lv_obj_t *battery_ico;
-extern lv_obj_t *battery_cg_ico;
+extern lv_obj_t *battery_level_txt;
+extern lv_obj_t *battery_level_ico;
+extern lv_obj_t *battery_lightning_ico;
 
-/* chargeScreen */
-extern lv_obj_t *chargeScreen;
-extern lv_obj_t *chargeAnimimg;
+/* Main Screen */
+extern lv_obj_t *main_screen;
 
-extern void set_ui();
-extern void mainScreenAlign();
+/* charge Screen */
+extern lv_obj_t *charge_screen;
+extern lv_obj_t *charge_animimg;
+extern lv_obj_t *charge_txt[3];
+
+extern void set_lvgl();
+
+extern void align_lv_top_status_bar();
 
 #endif

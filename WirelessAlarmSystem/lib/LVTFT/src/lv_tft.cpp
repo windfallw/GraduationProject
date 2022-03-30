@@ -7,8 +7,8 @@
 #define ROTARY_ENCODER_STEPS 4
 
 // TFT_ESPI reverse height and width in lvgl
-#define screenWidth TFT_HEIGHT
-#define screenHeight TFT_WIDTH
+#define ScreenWidth TFT_HEIGHT
+#define ScreenHeight TFT_WIDTH
 
 AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, ROTARY_ENCODER_BUTTON_PIN, ROTARY_ENCODER_VCC_PIN, ROTARY_ENCODER_STEPS);
 
@@ -70,8 +70,8 @@ void set_lv_drv()
 #endif
 
     static lv_disp_draw_buf_t draw_buf;
-    static lv_color_t buf[screenWidth * 10];
-    lv_disp_draw_buf_init(&draw_buf, buf, NULL, screenWidth * 10);
+    static lv_color_t buf[ScreenWidth * 10];
+    lv_disp_draw_buf_init(&draw_buf, buf, NULL, ScreenWidth * 10);
 
     /*Initialize the display*/
     tft.begin();
@@ -79,8 +79,8 @@ void set_lv_drv()
 
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
-    disp_drv.hor_res = screenWidth;
-    disp_drv.ver_res = screenHeight;
+    disp_drv.hor_res = ScreenWidth;
+    disp_drv.ver_res = ScreenHeight;
     disp_drv.rotated = LV_DISP_ROT_NONE;
     disp_drv.flush_cb = my_disp_flush;
     disp_drv.draw_buf = &draw_buf;

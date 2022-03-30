@@ -20,19 +20,7 @@ lv_obj_t *chargeAnimimg;
 lv_obj_t *tof_label;
 lv_obj_t *bt_label;
 
-static void chargeScreen_handler(lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-
-    if (code == LV_EVENT_CLICKED)
-    {
-        LV_LOG_USER("Clicked");
-        lv_group_remove_obj(chargeScreen);
-        lv_scr_load_anim(mainScreen, LV_SCR_LOAD_ANIM_FADE_ON, 100, 50, false);
-    }
-}
-
-void set_ui()
+void set_lv_mainScreen()
 {
     /* mainScreen */
     mainScreen = lv_obj_create(NULL);
@@ -62,7 +50,34 @@ void set_ui()
     bt_label = lv_label_create(mainScreen);
 
     mainScreenAlign();
+}
 
+void mainScreenAlign()
+{
+    lv_obj_align(wifi_ico, LV_ALIGN_TOP_LEFT, 5, 5);
+    lv_obj_align(battery_label, LV_ALIGN_TOP_RIGHT, -5, 5);
+    lv_obj_align(tof_label, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_align(bt_label, LV_ALIGN_BOTTOM_MID, 0, -10);
+
+    lv_obj_align_to(wifi_label, wifi_ico, LV_ALIGN_OUT_RIGHT_MID, 0, 0);
+    lv_obj_align_to(battery_ico, battery_label, LV_ALIGN_OUT_LEFT_MID, 0, 0);
+    lv_obj_align_to(battery_cg_ico, battery_ico, LV_ALIGN_OUT_LEFT_MID, 0, 0);
+}
+
+static void chargeScreen_handler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if (code == LV_EVENT_CLICKED)
+    {
+        LV_LOG_USER("Clicked");
+        lv_group_remove_obj(chargeScreen);
+        lv_scr_load_anim(mainScreen, LV_SCR_LOAD_ANIM_FADE_ON, 100, 50, false);
+    }
+}
+
+void set_lv_chargeScreen()
+{
     /* chargeScreen */
     chargeScreen = lv_obj_create(NULL);
     // lv_obj_clear_flag(chargeScreen, LV_OBJ_FLAG_SCROLLABLE);
@@ -102,25 +117,13 @@ void set_ui()
     lv_animimg_set_duration(chargeAnimimg, 1000);
     lv_animimg_set_repeat_count(chargeAnimimg, LV_ANIM_REPEAT_INFINITE);
     lv_animimg_start(chargeAnimimg);
+}
 
-    /* rotary encoder */
+void set_encoderGroup()
+{
     encoderGroup = lv_group_create();
     lv_indev_set_group(indev, encoderGroup);
     lv_group_set_default(encoderGroup);
 
-    lv_scr_load(mainScreen);
-    lv_scr_load_anim(chargeScreen, LV_SCR_LOAD_ANIM_FADE_ON, 100, 50, false);
-    lv_group_add_obj(encoderGroup, chargeScreen);
-}
-
-void mainScreenAlign()
-{
-    lv_obj_align(wifi_ico, LV_ALIGN_TOP_LEFT, 5, 5);
-    lv_obj_align(battery_label, LV_ALIGN_TOP_RIGHT, -5, 5);
-    lv_obj_align(tof_label, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_align(bt_label, LV_ALIGN_BOTTOM_MID, 0, -10);
-
-    lv_obj_align_to(wifi_label, wifi_ico, LV_ALIGN_OUT_RIGHT_MID, 0, 0);
-    lv_obj_align_to(battery_ico, battery_label, LV_ALIGN_OUT_LEFT_MID, 0, 0);
-    lv_obj_align_to(battery_cg_ico, battery_ico, LV_ALIGN_OUT_LEFT_MID, 0, 0);
+    // lv_group_add_obj(encoderGroup, chargeScreen);
 }

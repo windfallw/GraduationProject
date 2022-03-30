@@ -3,8 +3,6 @@
 
 #include "lv_tft.h"
 
-extern lv_group_t *encoderGroup;
-
 /* mainScreen */
 extern lv_obj_t *mainScreen;
 
@@ -23,7 +21,14 @@ extern lv_obj_t *chargeAnimimg;
 extern lv_obj_t *tof_label;
 extern lv_obj_t *bt_label;
 
-extern void set_ui();
+/* encoder */
+extern lv_group_t *encoderGroup;
+
+extern void set_lv_mainScreen();
 extern void mainScreenAlign();
+
+extern void set_lv_chargeScreen();
+
+extern void set_encoderGroup();
 
 #endif

@@ -76,6 +76,7 @@ void Task3TFT(void *pvParameters)
 
 void update_ui()
 {
+    // lv_scr_load_anim(chargeScreen, LV_SCR_LOAD_ANIM_FADE_ON, 100, 50, false);
     if (lv_scr_act() == mainScreen)
     {
         lv_label_set_text_fmt(wifi_label, "STA %s | AP %s", WiFi.SSID().c_str(), WiFi.softAPSSID().c_str());

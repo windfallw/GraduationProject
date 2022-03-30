@@ -1,60 +1,173 @@
 #include "lvtft.h"
 
-/* mainScreen */
-lv_obj_t *mainScreen;
+/********************
+ *      DEFINES     *
+ ********************/
+#define ScreenWidth SDL_HOR_RES
+#define ScreenHeight SDL_VER_RES
+
+/* 4 main color from https://colordrop.io/ */
+#define LIGHT_COLOR lv_color_hex(0x08ffc8)
+#define WHITE_COLOR lv_color_hex(0xfff7f7)
+#define DARK_COLOR lv_color_hex(0xdadada)
+#define OBJ_BG_COLOR lv_color_hex(0x204969)
+
+/* Status Bar */
+#define STATUS_BAR_SIZE 5
+#define STATUS_BAR_PAD 5
+#define STATUS_BAR_FONT lv_font_montserrat_12
+#define STATUS_BAR_FONT_PAD 1
+
+/********************
+ *      STYLE       *
+ ********************/
+static lv_style_t style_status_bar;
+static lv_style_t style_status_bar_font;
+
+static void set_lv_style()
+{
+    /* Create a style for the status bar */
+    lv_style_init(&style_status_bar);
+
+    lv_style_set_width(&style_status_bar, ScreenWidth);
+    lv_style_set_height(&style_status_bar, STATUS_BAR_FONT.line_height + STATUS_BAR_SIZE);
+
+    lv_style_set_radius(&style_status_bar, 0);
+    lv_style_set_border_width(&style_status_bar, 1);
+    lv_style_set_pad_all(&style_status_bar, STATUS_BAR_PAD);
+
+    lv_style_set_bg_color(&style_status_bar, OBJ_BG_COLOR);
+    lv_style_set_bg_opa(&style_status_bar, LV_OPA_90);
+    lv_style_set_border_color(&style_status_bar, DARK_COLOR);
+
+    lv_style_set_shadow_width(&style_status_bar, 3);
+    lv_style_set_shadow_ofs_x(&style_status_bar, 1);
+    lv_style_set_shadow_ofs_y(&style_status_bar, 1);
+    lv_style_set_shadow_opa(&style_status_bar, LV_OPA_10);
+
+    /* Create a style for the status bar's font */
+    lv_style_init(&style_status_bar_font);
+    lv_style_set_text_color(&style_status_bar_font, WHITE_COLOR);
+    lv_style_set_text_font(&style_status_bar_font, &STATUS_BAR_FONT);
+    lv_style_set_pad_all(&style_status_bar_font, STATUS_BAR_FONT_PAD);
+}
+
+/********************
+ *     LVGL OBJ     *
+ ********************/
+
+/* Top Screen Status Bar */
+lv_obj_t *top_status_bar;
 
 lv_obj_t *wifi_ico;
-lv_obj_t *wifi_label;
+lv_obj_t *wifi_txt;
 
-lv_obj_t *battery_label;
-lv_obj_t *battery_ico;
-lv_obj_t *battery_cg_ico;
+lv_obj_t *battery_level_txt;
+lv_obj_t *battery_level_ico;
+lv_obj_t *battery_lightning_ico;
 
-/* chargeScreen */
-lv_obj_t *chargeScreen;
-lv_obj_t *chargeAnimimg;
+/* Main Screen */
+lv_obj_t *main_screen;
 
-static void chargeScreen_handler(lv_event_t *e)
+/* Charge Screen */
+lv_obj_t *charge_screen;
+lv_obj_t *charge_animimg;
+lv_obj_t *charge_txt[3];
+
+/********************
+ *     FUNCTION     *
+ ********************/
+
+/*
+ * @brief set the status bar on lv_layer_top()
+ * @param font lv_font to use
+ * @param size status bar size = font height + size
+ * @param pad status bar offset
+ */
+static void set_lv_status_bar()
+{
+    /********************
+     *      TOP BAR      *
+     ********************/
+    top_status_bar = lv_obj_create(lv_layer_top());
+    lv_obj_clear_flag(top_status_bar, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(top_status_bar, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_remove_style_all(top_status_bar);
+    lv_obj_add_style(top_status_bar, &style_status_bar, 0);
+
+    /* wifi icon */
+    wifi_ico = lv_label_create(top_status_bar);
+    lv_obj_add_style(wifi_ico, &style_status_bar_font, 0);
+    lv_label_set_text(wifi_ico, LV_SYMBOL_WIFI);
+
+    /* wifi text */
+    wifi_txt = lv_label_create(top_status_bar);
+    lv_obj_add_style(wifi_txt, &style_status_bar_font, 0);
+
+    /* battery level txt */
+    battery_level_txt = lv_label_create(top_status_bar);
+    lv_obj_add_style(battery_level_txt, &style_status_bar_font, 0);
+
+    /* battery level icon */
+    battery_level_ico = lv_label_create(top_status_bar);
+    lv_obj_add_style(battery_level_ico, &style_status_bar_font, 0);
+
+    /* battery lightning icon */
+    battery_lightning_ico = lv_label_create(top_status_bar);
+    lv_obj_add_flag(battery_lightning_ico, LV_OBJ_FLAG_HIDDEN);
+    lv_label_set_recolor(battery_lightning_ico, true);
+    lv_obj_add_style(battery_lightning_ico, &style_status_bar_font, 0);
+    lv_obj_set_style_text_color(battery_lightning_ico, LIGHT_COLOR, 0);
+
+    /********************
+     *    BOTTOM BAR    *
+     ********************/
+
+    /******************
+     *     ALIGN      *
+     ******************/
+    lv_obj_align(wifi_ico, LV_ALIGN_LEFT_MID, 0, 0);
+    lv_obj_align(battery_level_txt, LV_ALIGN_RIGHT_MID, 0, 0);
+
+    align_lv_top_status_bar();
+}
+
+/*
+ * @brief align the top status bar
+ */
+void align_lv_top_status_bar()
+{
+    lv_obj_align_to(wifi_txt, wifi_ico, LV_ALIGN_OUT_RIGHT_MID, 0, 0);
+    lv_obj_align_to(battery_level_ico, battery_level_txt, LV_ALIGN_OUT_LEFT_MID, 0, 0);
+    lv_obj_align_to(battery_lightning_ico, battery_level_ico, LV_ALIGN_OUT_LEFT_MID, 0, 0);
+}
+
+static void set_lv_main_screen()
+{
+    /* mainScreen */
+    main_screen = lv_obj_create(NULL);
+    lv_obj_clear_flag(main_screen, LV_OBJ_FLAG_SCROLLABLE);
+}
+
+static void charge_screen_handler(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
 
     if (code == LV_EVENT_CLICKED)
     {
         LV_LOG_USER("Clicked");
-        lv_scr_load_anim(mainScreen, LV_SCR_LOAD_ANIM_FADE_ON, 1000, 300, false);
+        lv_scr_load_anim(main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 100, 50, false);
     }
 }
 
-void set_ui()
+static void set_lv_charge_screen()
 {
-    /* mainScreen */
-    mainScreen = lv_obj_create(NULL);
-    // lv_obj_clear_flag(mainScreen, LV_OBJ_FLAG_SCROLLABLE);
+    lv_scr_act();
+    /* Charge Screen */
+    charge_screen = lv_obj_create(NULL);
+    lv_obj_clear_flag(charge_screen, LV_OBJ_FLAG_SCROLLABLE);
 
-    wifi_ico = lv_label_create(mainScreen);
-    lv_obj_set_style_text_font(wifi_ico, &lv_font_montserrat_12, 0);
-    lv_label_set_text(wifi_ico, LV_SYMBOL_WIFI);
-
-    wifi_label = lv_label_create(mainScreen);
-    lv_obj_set_style_text_font(wifi_label, &lv_font_montserrat_12, 0);
-
-    battery_label = lv_label_create(mainScreen);
-    lv_obj_set_style_text_font(battery_label, &lv_font_montserrat_12, 0);
-
-    battery_ico = lv_label_create(mainScreen);
-    lv_obj_set_style_text_font(battery_ico, &lv_font_montserrat_12, 0);
-
-    battery_cg_ico = lv_label_create(mainScreen);
-    lv_obj_set_style_text_font(battery_cg_ico, &lv_font_montserrat_12, 0);
-    lv_label_set_recolor(battery_cg_ico, true);
-    lv_obj_add_flag(battery_cg_ico, LV_OBJ_FLAG_HIDDEN);
-
-    mainScreenAlign();
-
-    /* chargeScreen */
-    chargeScreen = lv_obj_create(NULL);
-    // lv_obj_clear_flag(chargeScreen, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_add_event_cb(chargeScreen, chargeScreen_handler, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(charge_screen, charge_screen_handler, LV_EVENT_CLICKED, NULL);
 
     LV_IMG_DECLARE(charging1);
     LV_IMG_DECLARE(charging2);
@@ -83,23 +196,36 @@ void set_ui()
         &charging12,
     };
 
-    chargeAnimimg = lv_animimg_create(chargeScreen);
-    lv_obj_center(chargeAnimimg);
-    lv_animimg_set_src(chargeAnimimg, (lv_img_dsc_t **)chargeImgs, 12);
-    lv_animimg_set_duration(chargeAnimimg, 1000);
-    lv_animimg_set_repeat_count(chargeAnimimg, LV_ANIM_REPEAT_INFINITE);
-    lv_animimg_start(chargeAnimimg);
+    charge_animimg = lv_animimg_create(charge_screen);
+    lv_obj_align(charge_animimg, LV_ALIGN_CENTER, 0, -30);
+    lv_animimg_set_src(charge_animimg, (lv_img_dsc_t **)chargeImgs, 12);
+    lv_animimg_set_duration(charge_animimg, 1000);
+    lv_animimg_set_repeat_count(charge_animimg, LV_ANIM_REPEAT_INFINITE);
+    lv_animimg_start(charge_animimg);
 
-    lv_scr_load(mainScreen);
-    lv_scr_load_anim(chargeScreen, LV_SCR_LOAD_ANIM_FADE_ON, 1000, 300, false);
+    charge_txt[0] = lv_label_create(charge_screen);
+    lv_obj_align(charge_txt[0], LV_ALIGN_CENTER, 0, 30);
+    lv_obj_set_style_text_font(charge_txt[0], &lv_font_montserrat_12, 0);
+    lv_label_set_recolor(charge_txt[0], true);
+
+    lv_label_set_text(charge_txt[0], "#0000ff VoltageOC: 4300mV");
+
+    charge_txt[1] = lv_label_create(charge_screen);
+    lv_obj_align(charge_txt[1], LV_ALIGN_CENTER, 0, 50);
+    lv_obj_set_style_text_font(charge_txt[1], &lv_font_montserrat_12, 0);
+    lv_label_set_recolor(charge_txt[1], true);
+
+    lv_label_set_text(charge_txt[1], "#ff0000 Voltage: 4300mV");
 }
 
-void mainScreenAlign()
+/*
+ * @brief set lvgl and load main screen
+ */
+void set_lvgl()
 {
-    lv_obj_align(wifi_ico, LV_ALIGN_TOP_LEFT, 5, 5);
-    lv_obj_align(battery_label, LV_ALIGN_TOP_RIGHT, -5, 5);
+    set_lv_style();
 
-    lv_obj_align_to(wifi_label, wifi_ico, LV_ALIGN_OUT_RIGHT_MID, 0, 0);
-    lv_obj_align_to(battery_ico, battery_label, LV_ALIGN_OUT_LEFT_MID, 0, 0);
-    lv_obj_align_to(battery_cg_ico, battery_ico, LV_ALIGN_OUT_LEFT_MID, 0, 0);
+    set_lv_status_bar();
+    set_lv_main_screen();
+    set_lv_charge_screen();
 }

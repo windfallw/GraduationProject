@@ -346,7 +346,7 @@ public:
     IP5108(TwoWire *i, int sdaPin, int sclPin, uint32_t frequency);
     ~IP5108();
 
-    void set_up();
+    void setup();
     float getBattVoltage();
     float getBattCurrent();
     float getBattOcVoltage();
