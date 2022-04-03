@@ -3,14 +3,10 @@
 #include "lvtft_status_bar.h"
 
 /*
- * @brief set the status bar on lv_layer_top()
+ * @brief set the top status bar on lv_layer_top()
  */
-void set_lv_status_bar()
+void set_lv_top_status_bar()
 {
-    /********************
-     *      TOP BAR      *
-     ********************/
-
     top_status_bar = lv_obj_create(lv_layer_top());
     lv_obj_clear_flag(top_status_bar, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_clear_flag(top_status_bar, LV_OBJ_FLAG_SCROLLABLE);
@@ -41,16 +37,6 @@ void set_lv_status_bar()
     lv_obj_set_style_text_color(battery_lightning_ico, light_color, 0);
     lv_label_set_text(battery_lightning_ico, LV_SYMBOL_CHARGE);
 
-    /********************
-     *    BOTTOM BAR    *
-     ********************/
-
-    bottom_status_bar = lv_obj_create(lv_layer_top());
-    lv_obj_clear_flag(bottom_status_bar, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(bottom_status_bar, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_remove_style_all(bottom_status_bar);
-    lv_obj_add_style(bottom_status_bar, &style_bottom_status_bar, 0);
-
     /******************
      *     ALIGN      *
      ******************/
@@ -68,4 +54,29 @@ void align_lv_top_status_bar()
     lv_obj_align_to(wifi_txt, wifi_ico, LV_ALIGN_OUT_RIGHT_MID, 0, 0);
     lv_obj_align_to(battery_level_ico, battery_level_txt, LV_ALIGN_OUT_LEFT_MID, 0, 0);
     lv_obj_align_to(battery_lightning_ico, battery_level_ico, LV_ALIGN_OUT_LEFT_MID, 0, 0);
+}
+
+/*
+ * @brief set the bottom status bar on lv_layer_top()
+ */
+void set_lv_bottom_status_bar()
+{
+    bottom_status_bar = lv_obj_create(lv_layer_top());
+    lv_obj_clear_flag(bottom_status_bar, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(bottom_status_bar, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_remove_style_all(bottom_status_bar);
+    lv_obj_add_style(bottom_status_bar, &style_bottom_status_bar, 0);
+
+    /******************
+     *     ALIGN      *
+     ******************/
+
+    align_lv_bottom_status_bar();
+}
+
+/*
+ * @brief align the bottom status bar
+ */
+void align_lv_bottom_status_bar()
+{
 }

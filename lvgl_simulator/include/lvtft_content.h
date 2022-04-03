@@ -3,17 +3,25 @@
 
 #include "lvgl.h"
 
-/* Main Screen */
+/*****************
+ *  MAIN SCREEN  *
+ *****************/
 lv_obj_t *main_screen;
 lv_obj_t *main_screen_bg;
+
+/* main screen menu */
 lv_obj_t *main_screen_menu;
 
-/* charge Screen */
+/*******************
+ *  CHARGE SCREEN  *
+ *******************/
 lv_obj_t *charge_screen;
+
 lv_obj_t *charge_animimg;
 lv_obj_t *charge_txt[3];
 
 void set_lv_main_screen();
+
 void set_lv_charge_screen();
 
 #endif

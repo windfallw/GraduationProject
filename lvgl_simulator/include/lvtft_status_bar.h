@@ -16,7 +16,10 @@ lv_obj_t *battery_lightning_ico;
 /* Bottom Status Bar */
 lv_obj_t *bottom_status_bar;
 
-void set_lv_status_bar();
+void set_lv_top_status_bar();
 void align_lv_top_status_bar();
+
+void set_lv_bottom_status_bar();
+void align_lv_bottom_status_bar();
 
 #endif

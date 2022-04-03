@@ -9,7 +9,11 @@ void set_lvgl()
 {
     set_lv_style();
 
-    set_lv_status_bar();
+    set_lv_top_status_bar();
+
+    set_lv_bottom_status_bar();
+
     set_lv_main_screen();
+
     set_lv_charge_screen();
 }

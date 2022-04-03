@@ -102,21 +102,10 @@ static void switch_handler(lv_event_t *e)
     }
 }
 
-/*
- * @brief set the main screen
- */
-void set_lv_main_screen()
+static void set_lv_main_screen_menu(lv_obj_t *parent)
 {
-    /* mainScreen */
-    main_screen = lv_obj_create(NULL);
+    main_screen_menu = lv_menu_create(parent);
 
-    main_screen_bg = lv_obj_create(main_screen);
-    lv_obj_clear_flag(main_screen_bg, LV_OBJ_FLAG_CLICKABLE);
-    // lv_obj_clear_flag(main_screen_bg, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_remove_style_all(main_screen_bg);
-    lv_obj_add_style(main_screen_bg, &style_main_screen_bg, 0);
-
-    main_screen_menu = lv_menu_create(main_screen_bg);
     lv_obj_set_style_bg_color(main_screen_menu, lv_color_white(), 0);
     lv_obj_set_style_bg_opa(main_screen_menu, LV_OPA_90, 0);
     lv_obj_set_style_radius(main_screen_menu, 5, 0);
@@ -124,7 +113,7 @@ void set_lv_main_screen()
     // lv_menu_set_mode_root_back_btn(main_screen_menu, LV_MENU_ROOT_BACK_BTN_DISABLED);
     // lv_obj_add_event_cb(main_screen_menu, back_event_handler, LV_EVENT_CLICKED, main_screen_menu);
 
-    lv_obj_set_size(main_screen_menu, ScreenWidth, ScreenHeight - (TOP_STATUS_BAR_FONT.line_height + TOP_STATUS_BAR_SIZE + BOTTOM_STATUS_BAR_FONT.line_height + BOTTOM_STATUS_BAR_SIZE));
+    lv_obj_set_size(main_screen_menu, ScreenWidth, ScreenHeight - (TOP_STATUS_BAR_FONT.line_height + TOP_STATUS_BAR_EXTRA_HEIGHT + BOTTOM_STATUS_BAR_FONT.line_height + BOTTOM_STATUS_BAR_EXTRA_HEIGHT));
     lv_obj_center(main_screen_menu);
 
     lv_obj_t *cont;
@@ -169,6 +158,23 @@ void set_lv_main_screen()
 }
 
 /*
+ * @brief set the main screen
+ */
+void set_lv_main_screen()
+{
+    main_screen = lv_obj_create(NULL);
+
+    main_screen_bg = lv_obj_create(main_screen);
+    lv_obj_clear_flag(main_screen_bg, LV_OBJ_FLAG_CLICKABLE);
+    // lv_obj_clear_flag(main_screen_bg, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_remove_style_all(main_screen_bg);
+    lv_obj_add_style(main_screen_bg, &style_main_screen_bg, 0);
+
+    /* create menu on main screen background */
+    set_lv_main_screen_menu(main_screen_bg);
+}
+
+/*
  * @brief charge screen handler
  */
 static void charge_screen_handler(lv_event_t *e)
@@ -187,7 +193,6 @@ static void charge_screen_handler(lv_event_t *e)
  */
 void set_lv_charge_screen()
 {
-    lv_scr_act();
     /* Charge Screen */
     charge_screen = lv_obj_create(NULL);
     lv_obj_clear_flag(charge_screen, LV_OBJ_FLAG_SCROLLABLE);
