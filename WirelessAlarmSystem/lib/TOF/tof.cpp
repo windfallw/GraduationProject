@@ -37,6 +37,9 @@ void shinelight::open()
 
     else
     {
+        if (!cg.alarm.ms)
+            return;
+
         ledcWrite(channel, cg.alarm.dutyCycle);
         IsOn = true;
         timerAlarmWrite(timer, cg.alarm.ms * 1000, false); // value in microseconds

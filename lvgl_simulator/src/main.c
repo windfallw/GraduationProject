@@ -1,7 +1,6 @@
 #include <SDL2/SDL.h>
-
-#include "lvgl.h"
 #include "app_hal.h"
+
 #include "lvtft.h"
 
 int main(void)
@@ -12,7 +11,7 @@ int main(void)
   set_lvgl();
 
   lv_scr_load(main_screen);
-  lv_scr_load_anim(charge_screen, LV_SCR_LOAD_ANIM_FADE_ON, 100, 50, false);
+  // lv_scr_load_anim(charge_screen, LV_SCR_LOAD_ANIM_FADE_ON, 100, 50, false);
 
   lv_label_set_text(wifi_txt, "STA ESPSTA | AP ESPAP");
   lv_label_set_text(battery_level_ico, LV_SYMBOL_BATTERY_FULL);
@@ -21,9 +20,6 @@ int main(void)
 
   while (1)
   {
-    // lv_task_handler();
-    // SDL_Delay(5);
-
     for (int i = 0; i <= 100; i++)
     {
       lv_label_set_text_fmt(battery_level_txt, "%d%%", i);
