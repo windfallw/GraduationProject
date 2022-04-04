@@ -17,6 +17,7 @@ lv_style_t style_bottom_status_bar;
 lv_style_t style_bottom_status_bar_font;
 
 lv_style_t style_main_screen_bg;
+lv_style_t style_main_screen_menu;
 lv_style_t style_main_screen_font;
 
 void set_lv_style();

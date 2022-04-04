@@ -106,55 +106,73 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
 {
     main_screen_menu = lv_menu_create(parent);
 
-    lv_obj_set_style_bg_color(main_screen_menu, lv_color_white(), 0);
-    lv_obj_set_style_bg_opa(main_screen_menu, LV_OPA_90, 0);
-    lv_obj_set_style_radius(main_screen_menu, 5, 0);
+    lv_obj_clear_flag(main_screen_menu, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(main_screen_menu, LV_OBJ_FLAG_SCROLLABLE);
+
+    // lv_obj_remove_style_all(main_screen_menu);
+    lv_obj_add_style(main_screen_menu, &style_main_screen_menu, 0);
 
     // lv_menu_set_mode_root_back_btn(main_screen_menu, LV_MENU_ROOT_BACK_BTN_DISABLED);
-    // lv_obj_add_event_cb(main_screen_menu, back_event_handler, LV_EVENT_CLICKED, main_screen_menu);
 
-    lv_obj_set_size(main_screen_menu, ScreenWidth, ScreenHeight - (TOP_STATUS_BAR_FONT.line_height + TOP_STATUS_BAR_EXTRA_HEIGHT + BOTTOM_STATUS_BAR_FONT.line_height + BOTTOM_STATUS_BAR_EXTRA_HEIGHT));
-    lv_obj_center(main_screen_menu);
+    lv_obj_add_event_cb(main_screen_menu, back_event_handler, LV_EVENT_CLICKED, main_screen_menu);
 
     lv_obj_t *cont;
     lv_obj_t *section;
 
     /*Create sub pages*/
-    lv_obj_t *sub_mechanics_page = lv_menu_page_create(main_screen_menu, NULL);
-    lv_obj_set_style_pad_hor(sub_mechanics_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(main_screen_menu), 0), 0);
-    lv_menu_separator_create(sub_mechanics_page);
+    lv_obj_t *sub_mechanics_page = lv_menu_page_create(main_screen_menu, "hi");
+
+    // lv_obj_set_style_pad_hor(sub_mechanics_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(main_screen_menu), 0), 0);
+    // lv_menu_separator_create(sub_mechanics_page);
+
     section = lv_menu_section_create(sub_mechanics_page);
     create_slider(section, LV_SYMBOL_SETTINGS, "Velocity", 0, 150, 120);
     create_slider(section, LV_SYMBOL_SETTINGS, "Acceleration", 0, 150, 50);
     create_slider(section, LV_SYMBOL_SETTINGS, "Weight limit", 0, 150, 80);
+    create_switch(section, LV_SYMBOL_AUDIO, "Sound", false);
+    create_text(section, LV_SYMBOL_SETTINGS, "Display", LV_MENU_ITEM_BUILDER_VARIANT_1);
 
-    lv_obj_t *sub_sound_page = lv_menu_page_create(main_screen_menu, NULL);
+    /*Create sub pages*/
+    lv_obj_t *sub_sound_page = lv_menu_page_create(main_screen_menu, "hi");
+
     lv_obj_set_style_pad_hor(sub_sound_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(main_screen_menu), 0), 0);
     lv_menu_separator_create(sub_sound_page);
-    section = lv_menu_section_create(sub_sound_page);
-    create_switch(section, LV_SYMBOL_AUDIO, "Sound", false);
 
-    lv_obj_t *sub_display_page = lv_menu_page_create(main_screen_menu, NULL);
+    section = lv_menu_section_create(sub_sound_page);
+    create_slider(section, LV_SYMBOL_SETTINGS, "Velocity", 0, 150, 120);
+    create_slider(section, LV_SYMBOL_SETTINGS, "Acceleration", 0, 150, 50);
+    create_slider(section, LV_SYMBOL_SETTINGS, "Weight limit", 0, 150, 80);
+    create_switch(section, LV_SYMBOL_AUDIO, "Sound", false);
+    create_text(section, LV_SYMBOL_SETTINGS, "Display", LV_MENU_ITEM_BUILDER_VARIANT_1);
+
+    /*Create sub pages*/
+    lv_obj_t *sub_display_page = lv_menu_page_create(main_screen_menu, "sub");
+
     lv_obj_set_style_pad_hor(sub_display_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(main_screen_menu), 0), 0);
     lv_menu_separator_create(sub_display_page);
+
     section = lv_menu_section_create(sub_display_page);
     create_slider(section, LV_SYMBOL_SETTINGS, "Brightness", 0, 150, 100);
 
     /*Create a root page*/
     root_page = lv_menu_page_create(main_screen_menu, "Settings");
-    lv_obj_set_style_pad_hor(root_page, lv_obj_get_style_pad_left(lv_menu_get_main_header(main_screen_menu), 0), 0);
+
     section = lv_menu_section_create(root_page);
 
     cont = create_text(section, LV_SYMBOL_SETTINGS, "Wi-Fi", LV_MENU_ITEM_BUILDER_VARIANT_1);
     lv_menu_set_load_page_event(main_screen_menu, cont, sub_mechanics_page);
+
     cont = create_text(section, LV_SYMBOL_AUDIO, "Sound", LV_MENU_ITEM_BUILDER_VARIANT_1);
     lv_menu_set_load_page_event(main_screen_menu, cont, sub_sound_page);
+
     cont = create_text(section, LV_SYMBOL_SETTINGS, "Display", LV_MENU_ITEM_BUILDER_VARIANT_1);
     lv_menu_set_load_page_event(main_screen_menu, cont, sub_display_page);
 
     lv_menu_set_sidebar_page(main_screen_menu, root_page);
 
-    lv_event_send(lv_obj_get_child(lv_obj_get_child(lv_menu_get_cur_sidebar_page(main_screen_menu), 0), 0), LV_EVENT_CLICKED, NULL);
+    // lv_menu_set_sidebar_page(main_screen_menu, NULL);
+    // lv_menu_clear_history(main_screen_menu);
+    // lv_menu_set_page(main_screen_menu, root_page);
 }
 
 /*
@@ -166,7 +184,7 @@ void set_lv_main_screen()
 
     main_screen_bg = lv_obj_create(main_screen);
     lv_obj_clear_flag(main_screen_bg, LV_OBJ_FLAG_CLICKABLE);
-    // lv_obj_clear_flag(main_screen_bg, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_clear_flag(main_screen_bg, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_remove_style_all(main_screen_bg);
     lv_obj_add_style(main_screen_bg, &style_main_screen_bg, 0);
 
