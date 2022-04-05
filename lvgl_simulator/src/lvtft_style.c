@@ -103,10 +103,12 @@ static void set_lv_style_main_screen_menu(lv_style_t *style)
     lv_style_set_height(style, lv_pct(100));
 
     lv_style_set_radius(style, 0);
-    lv_style_set_border_width(style, 1);
+    lv_style_set_border_width(style, 0);
 
     lv_style_set_bg_color(style, lv_color_white());
     lv_style_set_bg_opa(style, LV_OPA_20);
+
+    lv_style_set_text_font(style, &MAIN_SCREEN_MENU_FONT);
 }
 
 /* Set color and style variable */

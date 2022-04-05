@@ -48,4 +48,6 @@
 #define MAIN_SCREEN_WIDTH ScreenWidth
 #define MAIN_SCREEN_HEIGHT (ScreenHeight - (TOP_STATUS_BAR_HEIGHT + BOTTOM_STATUS_BAR_HEIGHT))
 
+#define MAIN_SCREEN_MENU_FONT lv_font_montserrat_12
+
 #endif
