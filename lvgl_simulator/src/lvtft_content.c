@@ -62,7 +62,7 @@ static menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, con
     menu_slider_t *obj = lv_mem_alloc(sizeof(menu_slider_t));
 
     obj->base = create_menu_base(parent, icon, title);
-    lv_obj_set_style_pad_hor(obj->base->menu_cont, 10, 0);
+    lv_obj_set_style_pad_hor(obj->base->menu_cont, MAIN_SCREEN_MENU_PAGE_CONT_PAD_HOR, 0);
 
     obj->slider_val = lv_label_create(obj->base->menu_cont);
     lv_label_set_long_mode(obj->slider_val, LV_LABEL_LONG_SCROLL_CIRCULAR);
@@ -95,7 +95,7 @@ static menu_switch_t *create_menu_switch(lv_obj_t *parent, const char *icon, con
 
     lv_obj_add_state(obj->sw, check ? LV_STATE_CHECKED : 0);
 
-    lv_obj_set_style_pad_hor(obj->base->menu_cont, 10, 0);
+    lv_obj_set_style_pad_hor(obj->base->menu_cont, MAIN_SCREEN_MENU_PAGE_CONT_PAD_HOR, 0);
 
     return obj;
 }
