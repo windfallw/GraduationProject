@@ -1,7 +1,7 @@
-#ifndef LVUIH
-#define LVUIH
+#ifndef LVTFT_CONTENT_H
+#define LVTFT_CONTENT_H
 
-#include "lv_tft.h"
+#include "lvgl.h"
 
 /* mainScreen */
 extern lv_obj_t *mainScreen;
@@ -22,13 +22,10 @@ extern lv_obj_t *tof_label;
 extern lv_obj_t *bt_label;
 
 /* encoder */
-extern lv_group_t *encoderGroup;
+// extern lv_group_t *encoder_group;
 
 extern void set_lv_mainScreen();
 extern void mainScreenAlign();
-
 extern void set_lv_chargeScreen();
-
-extern void set_encoderGroup();
 
 #endif

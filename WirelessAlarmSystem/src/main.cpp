@@ -12,14 +12,7 @@ void setup()
 
     bms.setup();
 
-    set_rotary_encoder();
-    set_lv_drv();
-
-    set_lv_mainScreen();
-    set_lv_chargeScreen();
-    set_encoderGroup();
-
-    lv_scr_load(mainScreen);
+    set_lvgl();
 
     /*  defalut ESP_TASK_PRIO_MAX = configMAX_PRIORITIES = 25
     but priority value range (0-24) set priority = -1 or bigger than 24 will auto correct to 24*/

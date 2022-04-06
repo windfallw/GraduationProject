@@ -1,6 +1,4 @@
-#include "lv_ui.h"
-
-lv_group_t *encoderGroup;
+#include "lvtft_content.h"
 
 /* mainScreen */
 lv_obj_t *mainScreen;
@@ -117,13 +115,4 @@ void set_lv_chargeScreen()
     lv_animimg_set_duration(chargeAnimimg, 1000);
     lv_animimg_set_repeat_count(chargeAnimimg, LV_ANIM_REPEAT_INFINITE);
     lv_animimg_start(chargeAnimimg);
-}
-
-void set_encoderGroup()
-{
-    encoderGroup = lv_group_create();
-    lv_indev_set_group(indev, encoderGroup);
-    lv_group_set_default(encoderGroup);
-
-    // lv_group_add_obj(encoderGroup, chargeScreen);
 }

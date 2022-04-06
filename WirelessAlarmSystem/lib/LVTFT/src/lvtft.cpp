@@ -1,4 +1,6 @@
-#include "lv_tft.h"
+#include "AiEsp32RotaryEncoder.h"
+#include "TFT_eSPI.h"
+#include "lvtft.h"
 
 #define ROTARY_ENCODER_BUTTON_PIN 25
 #define ROTARY_ENCODER_A_PIN 26
@@ -10,22 +12,22 @@
 #define ScreenWidth TFT_HEIGHT
 #define ScreenHeight TFT_WIDTH
 
-AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, ROTARY_ENCODER_BUTTON_PIN, ROTARY_ENCODER_VCC_PIN, ROTARY_ENCODER_STEPS);
+static AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, ROTARY_ENCODER_BUTTON_PIN, ROTARY_ENCODER_VCC_PIN, ROTARY_ENCODER_STEPS);
+static TFT_eSPI tft = TFT_eSPI();
 
-TFT_eSPI tft = TFT_eSPI();
-
-lv_disp_t *disp;
-lv_indev_t *indev;
+static lv_disp_t *disp;
+static lv_indev_t *indev;
+static lv_group_t *encoder_group;
 
 #if LV_USE_LOG != 0
-void my_log_cb(const char *buf)
+static void my_log_cb(const char *buf)
 {
     Serial.printf("%s\r\n", buf);
     Serial.flush();
 }
 #endif
 
-void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
+static void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
 {
     uint32_t w = (area->x2 - area->x1 + 1);
     uint32_t h = (area->y2 - area->y1 + 1);
@@ -36,12 +38,12 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
     lv_disp_flush_ready(disp);
 }
 
-void IRAM_ATTR readEncoderISR()
+static void IRAM_ATTR readEncoderISR()
 {
     rotaryEncoder.readEncoder_ISR();
 }
 
-void set_rotary_encoder()
+static void set_rotary_encoder()
 {
     rotaryEncoder.begin();
     rotaryEncoder.setup(readEncoderISR);
@@ -50,7 +52,7 @@ void set_rotary_encoder()
     // rotaryEncoder.setEncoderValue(0);
 }
 
-void encoder_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
+static void encoder_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
 {
     data->enc_diff = rotaryEncoder.encoderChanged();
     // Serial.println(data->enc_diff);
@@ -60,7 +62,7 @@ void encoder_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
         data->state = LV_INDEV_STATE_RELEASED;
 }
 
-void set_lv_drv()
+static void set_lv_drv()
 {
     /*Initialize lvgl*/
     lv_init();
@@ -94,4 +96,19 @@ void set_lv_drv()
     indev_drv.read_cb = encoder_read;
 
     indev = lv_indev_drv_register(&indev_drv);
+}
+
+static void set_lv_group()
+{
+    encoder_group = lv_group_create();
+    lv_indev_set_group(indev, encoder_group);
+    lv_group_set_default(encoder_group);
+}
+
+void set_lvgl()
+{
+    set_rotary_encoder();
+    set_lv_drv();
+    set_lv_mainScreen();
+    lv_scr_load(mainScreen);
 }
