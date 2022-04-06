@@ -3,6 +3,9 @@
 
 #include "lvgl.h"
 
+/*********************
+ *    main screen    *
+ *********************/
 lv_obj_t *main_screen;
 lv_obj_t *main_screen_bg;
 lv_obj_t *main_screen_menu;
@@ -29,13 +32,14 @@ lv_obj_t *buzzer_mute_switch;
 lv_obj_t *buzzer_duty_slider;
 lv_obj_t *buzzer_freq_slider;
 
-/* charge */
+/*********************
+ *   charge screen   *
+ *********************/
 lv_obj_t *charge_screen;
 lv_obj_t *charge_animimg;
-lv_obj_t *charge_txt[3];
 
 void set_lv_main_screen();
-
 void set_lv_charge_screen();
+void show_lv_charge_screen();
 
 #endif

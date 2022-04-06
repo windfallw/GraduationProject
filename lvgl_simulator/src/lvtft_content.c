@@ -2,6 +2,34 @@
 #include "lvtft_style.h"
 #include "lvtft_content.h"
 
+LV_IMG_DECLARE(charging1);
+LV_IMG_DECLARE(charging2);
+LV_IMG_DECLARE(charging3);
+LV_IMG_DECLARE(charging4);
+LV_IMG_DECLARE(charging5);
+LV_IMG_DECLARE(charging6);
+LV_IMG_DECLARE(charging7);
+LV_IMG_DECLARE(charging8);
+LV_IMG_DECLARE(charging9);
+LV_IMG_DECLARE(charging10);
+LV_IMG_DECLARE(charging11);
+LV_IMG_DECLARE(charging12);
+
+static const lv_img_dsc_t *chargeImgs[12] = {
+    &charging1,
+    &charging2,
+    &charging3,
+    &charging4,
+    &charging5,
+    &charging6,
+    &charging7,
+    &charging8,
+    &charging9,
+    &charging10,
+    &charging11,
+    &charging12,
+};
+
 enum
 {
     LV_MENU_ITEM_BUILDER_VARIANT_1,
@@ -120,8 +148,8 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
     /* create sub page tof */
     tof_page = lv_menu_page_create(main_screen_menu, "Alarm Threshold");
 
-    lv_obj_set_style_pad_all(tof_page, 6, 0);
-    // lv_menu_separator_create(tof_page);
+    lv_menu_separator_create(tof_page);
+    lv_obj_set_style_pad_hor(tof_page, 6, 0);
 
     tof_page_section = lv_menu_section_create(tof_page);
 
@@ -131,8 +159,8 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
     /* create sub page buzzer */
     buzzer_page = lv_menu_page_create(main_screen_menu, "PWM of Buzzer & LED");
 
-    lv_obj_set_style_pad_all(buzzer_page, 6, 0);
-    // lv_menu_separator_create(buzzer_page);
+    lv_menu_separator_create(buzzer_page);
+    lv_obj_set_style_pad_hor(buzzer_page, 6, 0);
 
     buzzer_page_section = lv_menu_section_create(buzzer_page);
 
@@ -145,7 +173,7 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
     /* create root page */
     menu_root_page = lv_menu_page_create(main_screen_menu, "Sidebar");
 
-    lv_obj_set_style_pad_all(menu_root_page, 2, 0);
+    lv_obj_set_style_pad_all(menu_root_page, 0, 0);
 
     root_page_section = lv_menu_section_create(menu_root_page);
 
@@ -180,75 +208,27 @@ void set_lv_main_screen()
 }
 
 /*
- * @brief charge screen handler
- */
-static void charge_screen_handler(lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-
-    if (code == LV_EVENT_CLICKED)
-    {
-        LV_LOG_USER("Clicked");
-        lv_scr_load_anim(main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 100, 50, false);
-    }
-}
-
-/*
  * @brief set the charge screen
  */
 void set_lv_charge_screen()
 {
-    /* Charge Screen */
     charge_screen = lv_obj_create(NULL);
-    lv_obj_clear_flag(charge_screen, LV_OBJ_FLAG_SCROLLABLE);
-
-    lv_obj_add_event_cb(charge_screen, charge_screen_handler, LV_EVENT_CLICKED, NULL);
-
-    LV_IMG_DECLARE(charging1);
-    LV_IMG_DECLARE(charging2);
-    LV_IMG_DECLARE(charging3);
-    LV_IMG_DECLARE(charging4);
-    LV_IMG_DECLARE(charging5);
-    LV_IMG_DECLARE(charging6);
-    LV_IMG_DECLARE(charging7);
-    LV_IMG_DECLARE(charging8);
-    LV_IMG_DECLARE(charging9);
-    LV_IMG_DECLARE(charging10);
-    LV_IMG_DECLARE(charging11);
-    LV_IMG_DECLARE(charging12);
-    static const lv_img_dsc_t *chargeImgs[12] = {
-        &charging1,
-        &charging2,
-        &charging3,
-        &charging4,
-        &charging5,
-        &charging6,
-        &charging7,
-        &charging8,
-        &charging9,
-        &charging10,
-        &charging11,
-        &charging12,
-    };
+    lv_obj_clear_flag(main_screen_bg, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(main_screen_bg, LV_OBJ_FLAG_SCROLLABLE);
 
     charge_animimg = lv_animimg_create(charge_screen);
-    lv_obj_align(charge_animimg, LV_ALIGN_CENTER, 0, -30);
+    lv_obj_align(charge_animimg, LV_ALIGN_CENTER, 0, 0);
     lv_animimg_set_src(charge_animimg, (lv_img_dsc_t **)chargeImgs, 12);
     lv_animimg_set_duration(charge_animimg, 1000);
-    lv_animimg_set_repeat_count(charge_animimg, LV_ANIM_REPEAT_INFINITE);
+    lv_animimg_set_repeat_count(charge_animimg, 1);
+}
+
+/*
+ * @brief show charging animation and return to main screen
+ */
+void show_lv_charge_screen()
+{
     lv_animimg_start(charge_animimg);
-
-    charge_txt[0] = lv_label_create(charge_screen);
-    lv_obj_align(charge_txt[0], LV_ALIGN_CENTER, 0, 30);
-    lv_obj_set_style_text_font(charge_txt[0], &lv_font_montserrat_12, 0);
-    lv_label_set_recolor(charge_txt[0], true);
-
-    lv_label_set_text(charge_txt[0], "#0000ff VoltageOC: 4300mV");
-
-    charge_txt[1] = lv_label_create(charge_screen);
-    lv_obj_align(charge_txt[1], LV_ALIGN_CENTER, 0, 50);
-    lv_obj_set_style_text_font(charge_txt[1], &lv_font_montserrat_12, 0);
-    lv_label_set_recolor(charge_txt[1], true);
-
-    lv_label_set_text(charge_txt[1], "#ff0000 Voltage: 4300mV");
+    lv_scr_load(charge_screen);
+    lv_scr_load_anim(main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 1000, 0, false);
 }
