@@ -1,8 +1,17 @@
 #ifndef LVTFTH
 #define LVTFTH
 
-#include "lvtft_content.h"
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
-void set_lvgl();
+#include "lvgl.h"
+
+    void set_lvgl();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

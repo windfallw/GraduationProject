@@ -1,5 +1,11 @@
 #include "AiEsp32RotaryEncoder.h"
 #include "TFT_eSPI.h"
+
+#include "lvtft_conf.h"
+#include "lvtft_style.h"
+#include "lvtft_status_bar.h"
+#include "lvtft_content.h"
+
 #include "lvtft.h"
 
 #define ROTARY_ENCODER_BUTTON_PIN 25
@@ -7,10 +13,6 @@
 #define ROTARY_ENCODER_B_PIN 27
 #define ROTARY_ENCODER_VCC_PIN -1
 #define ROTARY_ENCODER_STEPS 4
-
-// TFT_ESPI reverse height and width in lvgl
-#define ScreenWidth TFT_HEIGHT
-#define ScreenHeight TFT_WIDTH
 
 static AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, ROTARY_ENCODER_BUTTON_PIN, ROTARY_ENCODER_VCC_PIN, ROTARY_ENCODER_STEPS);
 static TFT_eSPI tft = TFT_eSPI();
@@ -108,7 +110,20 @@ static void set_lv_group()
 void set_lvgl()
 {
     set_rotary_encoder();
+
     set_lv_drv();
-    set_lv_mainScreen();
-    lv_scr_load(mainScreen);
+
+    set_lv_style();
+
+    set_lv_top_status_bar();
+
+    set_lv_bottom_status_bar();
+
+    set_lv_main_screen();
+
+    set_lv_charge_screen();
+
+    set_lv_group();
+
+    lv_scr_load(main_screen);
 }
