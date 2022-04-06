@@ -30,7 +30,7 @@ static const lv_img_dsc_t *chargeImgs[12] = {
     &charging12,
 };
 
-static menu_base_t *create_menu_base(lv_obj_t *parent, const char *icon, const char *txt)
+static menu_base_t *create_menu_base(lv_obj_t *parent, const char *icon, const char *title)
 {
     menu_base_t *base = lv_mem_alloc(sizeof(menu_base_t));
 
@@ -41,48 +41,55 @@ static menu_base_t *create_menu_base(lv_obj_t *parent, const char *icon, const c
         base->icon = lv_img_create(base->menu_cont);
         lv_img_set_src(base->icon, icon);
     }
+    else
+        base->icon = NULL;
 
-    if (txt)
+    if (title)
     {
         base->title = lv_label_create(base->menu_cont);
-        lv_label_set_text(base->title, txt);
+        lv_label_set_text(base->title, title);
         lv_label_set_long_mode(base->title, LV_LABEL_LONG_SCROLL_CIRCULAR);
         lv_obj_set_flex_grow(base->title, 1);
     }
+    else
+        base->title = NULL;
 
     return base;
 }
 
-static menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, const char *txt, int32_t min, int32_t max, int32_t val)
+static menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, const char *title, uint32_t min, uint32_t max, uint32_t val)
 {
     menu_slider_t *obj = lv_mem_alloc(sizeof(menu_slider_t));
 
-    obj->base = create_menu_base(parent, icon, txt);
+    obj->base = create_menu_base(parent, icon, title);
+    lv_obj_set_style_pad_hor(obj->base->menu_cont, 10, 0);
+
+    obj->slider_val = lv_label_create(obj->base->menu_cont);
+    lv_label_set_long_mode(obj->slider_val, LV_LABEL_LONG_SCROLL_CIRCULAR);
+    lv_obj_set_flex_grow(obj->slider_val, 0);
+
+    lv_label_set_text_fmt(obj->slider_val, "%d", val);
 
     obj->slider = lv_slider_create(obj->base->menu_cont);
     lv_obj_set_style_radius(obj->slider, LV_RADIUS_CIRCLE, LV_PART_KNOB);
     lv_obj_set_style_pad_all(obj->slider, 2, LV_PART_KNOB);
-
     lv_obj_set_flex_grow(obj->slider, 1);
     lv_obj_add_flag(obj->slider, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
-
-    // /* set the slider to react on dragging the knob only */
+    /* set the slider to react on dragging the knob only */
     lv_obj_add_flag(obj->slider, LV_OBJ_FLAG_ADV_HITTEST);
 
     lv_slider_set_mode(obj->slider, LV_SLIDER_MODE_NORMAL);
     lv_slider_set_range(obj->slider, min, max);
     lv_slider_set_value(obj->slider, val, LV_ANIM_OFF);
 
-    lv_obj_set_style_pad_hor(obj->base->menu_cont, 10, 0);
-
     return obj;
 }
 
-static menu_switch_t *create_menu_switch(lv_obj_t *parent, const char *icon, const char *txt, bool check)
+static menu_switch_t *create_menu_switch(lv_obj_t *parent, const char *icon, const char *title, bool check)
 {
     menu_switch_t *obj = lv_mem_alloc(sizeof(menu_switch_t));
 
-    obj->base = create_menu_base(parent, icon, txt);
+    obj->base = create_menu_base(parent, icon, title);
 
     obj->sw = lv_switch_create(obj->base->menu_cont);
 
@@ -104,21 +111,21 @@ static void root_back_btn_handler(lv_event_t *event)
 
     if (lv_menu_back_btn_is_root(menu, obj))
     {
-        if (lv_menu_get_cur_sidebar_page(menu) == menu_root_page)
+        if (lv_menu_get_cur_sidebar_page(menu) == menu_root->page)
         {
             /* remove sidebar page */
             lv_menu_set_sidebar_page(menu, NULL);
             lv_menu_clear_history(menu);
-            lv_menu_set_page(menu, menu_root_page);
+            lv_menu_set_page(menu, menu_root->page);
         }
         else
         {
             /* show sidebar page */
             lv_menu_set_page(menu, NULL);
-            lv_menu_set_sidebar_page(menu, menu_root_page);
+            lv_menu_set_sidebar_page(menu, menu_root->page);
             /* ! set sidebar header icon after sidebar page is set ! */
             // lv_img_set_src(lv_obj_get_child(lv_menu_get_sidebar_header_back_btn(menu), 0), LV_SYMBOL_REFRESH);
-            lv_event_send(tof_page_enter->menu_cont, LV_EVENT_CLICKED, NULL);
+            lv_event_send(enter_tof_page->menu_cont, LV_EVENT_CLICKED, NULL);
         }
     }
 }
@@ -140,46 +147,49 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
     lv_obj_add_event_cb(main_screen_menu, root_back_btn_handler, LV_EVENT_CLICKED, main_screen_menu);
 
     /* create subpage tof */
-    tof_page = lv_menu_page_create(main_screen_menu, "Alarm Threshold");
+    menu_sub_tof = lv_mem_alloc(sizeof(menu_page_t));
+    menu_sub_tof->page = lv_menu_page_create(main_screen_menu, "Alarm Threshold");
 
-    lv_menu_separator_create(tof_page);
-    lv_obj_set_style_pad_hor(tof_page, MAIN_SCREEN_MENU_SUBPAGE_PAD_HOR, 0);
+    lv_menu_separator_create(menu_sub_tof->page);
+    lv_obj_set_style_pad_hor(menu_sub_tof->page, MAIN_SCREEN_MENU_SUBPAGE_PAD_HOR, 0);
 
-    tof_page_section = lv_menu_section_create(tof_page);
+    menu_sub_tof->section = lv_menu_section_create(menu_sub_tof->page);
 
-    tof_limit_slider1 = create_menu_slider(tof_page_section, LV_SYMBOL_SETTINGS, "tof lidar 1", 0, 20000, 1000);
-    tof_limit_slider2 = create_menu_slider(tof_page_section, NULL, "tof lidar 2", 0, 20000, 2333);
+    tof_limit_slider1 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 1", 0, 20000, 1000);
+    tof_limit_slider2 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 2", 0, 20000, 2333);
 
     /* create subpage buzzer */
-    buzzer_page = lv_menu_page_create(main_screen_menu, "PWM of Buzzer & LED");
+    menu_sub_buzzer = lv_mem_alloc(sizeof(menu_page_t));
+    menu_sub_buzzer->page = lv_menu_page_create(main_screen_menu, "PWM of Buzzer & LED");
 
-    lv_menu_separator_create(buzzer_page);
-    lv_obj_set_style_pad_hor(buzzer_page, MAIN_SCREEN_MENU_SUBPAGE_PAD_HOR, 0);
+    lv_menu_separator_create(menu_sub_buzzer->page);
+    lv_obj_set_style_pad_hor(menu_sub_buzzer->page, MAIN_SCREEN_MENU_SUBPAGE_PAD_HOR, 0);
 
-    buzzer_page_section = lv_menu_section_create(buzzer_page);
+    menu_sub_buzzer->section = lv_menu_section_create(menu_sub_buzzer->page);
 
-    buzzer_mute_switch = create_menu_switch(buzzer_page_section, LV_SYMBOL_AUDIO, "mute", false);
-    buzzer_duty_slider = create_menu_slider(buzzer_page_section, NULL, "duty cycle", 0, 150, 120);
-    buzzer_freq_slider = create_menu_slider(buzzer_page_section, NULL, "frequency", 0, 150, 50);
+    buzzer_mute_switch = create_menu_switch(menu_sub_buzzer->section, LV_SYMBOL_AUDIO, "mute", false);
+    buzzer_duty_slider = create_menu_slider(menu_sub_buzzer->section, NULL, "duty cycle", 0, 255, 30);
+    buzzer_freq_slider = create_menu_slider(menu_sub_buzzer->section, NULL, "frequency", 0, 100, 10);
 
     /* create root page */
-    menu_root_page = lv_menu_page_create(main_screen_menu, "Sidebar");
-    lv_obj_set_style_pad_all(menu_root_page, MAIN_SCREEN_MENU_ROOTPAGE_PAD_ALL, 0);
+    menu_root = lv_mem_alloc(sizeof(menu_page_t));
+    menu_root->page = lv_menu_page_create(main_screen_menu, "Sidebar");
+    lv_obj_set_style_pad_all(menu_root->page, MAIN_SCREEN_MENU_ROOTPAGE_PAD_ALL, 0);
 
-    root_page_section = lv_menu_section_create(menu_root_page);
+    menu_root->section = lv_menu_section_create(menu_root->page);
 
-    tof_page_enter = create_menu_base(root_page_section, LV_SYMBOL_SETTINGS, "Measure");
-    buzzer_page_enter = create_menu_base(root_page_section, LV_SYMBOL_SETTINGS, "Alarm");
+    enter_tof_page = create_menu_base(menu_root->section, LV_SYMBOL_SETTINGS, "Measure");
+    enter_buzzer_page = create_menu_base(menu_root->section, LV_SYMBOL_SETTINGS, "Alarm");
 
     /* set the load page event */
-    lv_menu_set_load_page_event(main_screen_menu, tof_page_enter->menu_cont, tof_page);
-    lv_menu_set_load_page_event(main_screen_menu, buzzer_page_enter->menu_cont, buzzer_page);
+    lv_menu_set_load_page_event(main_screen_menu, enter_tof_page->menu_cont, menu_sub_tof->page);
+    lv_menu_set_load_page_event(main_screen_menu, enter_buzzer_page->menu_cont, menu_sub_buzzer->page);
 
     /* set siderbar page */
-    lv_menu_set_sidebar_page(main_screen_menu, menu_root_page);
+    lv_menu_set_sidebar_page(main_screen_menu, menu_root->page);
     /* ! set sidebar header icon after sidebar page is set ! */
     // lv_img_set_src(lv_obj_get_child(lv_menu_get_sidebar_header_back_btn(main_screen_menu), 0), LV_SYMBOL_REFRESH);
-    lv_event_send(tof_page_enter->menu_cont, LV_EVENT_CLICKED, NULL);
+    lv_event_send(enter_tof_page->menu_cont, LV_EVENT_CLICKED, NULL);
 }
 
 /*
