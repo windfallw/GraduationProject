@@ -9,8 +9,8 @@
 #include "lvtft.h"
 
 #define ROTARY_ENCODER_BUTTON_PIN 25
-#define ROTARY_ENCODER_A_PIN 26
-#define ROTARY_ENCODER_B_PIN 27
+#define ROTARY_ENCODER_A_PIN 27
+#define ROTARY_ENCODER_B_PIN 26
 #define ROTARY_ENCODER_VCC_PIN -1
 #define ROTARY_ENCODER_STEPS 4
 
@@ -19,7 +19,7 @@ static TFT_eSPI tft = TFT_eSPI();
 
 static lv_disp_t *disp;
 static lv_indev_t *indev;
-static lv_group_t *encoder_group;
+static lv_group_t *indev_group;
 
 #if LV_USE_LOG != 0
 static void my_log_cb(const char *buf)
@@ -49,15 +49,15 @@ static void set_rotary_encoder()
 {
     rotaryEncoder.begin();
     rotaryEncoder.setup(readEncoderISR);
-    rotaryEncoder.setBoundaries(-1000, 1000, false);
-    rotaryEncoder.setAcceleration(50);
-    // rotaryEncoder.setEncoderValue(0);
+    rotaryEncoder.setBoundaries(-1000000, 1000000, false);
+    rotaryEncoder.setAcceleration(10000);
+    rotaryEncoder.setEncoderValue(0);
 }
 
 static void encoder_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
 {
     data->enc_diff = rotaryEncoder.encoderChanged();
-    // Serial.println(data->enc_diff);
+    Serial.println(data->enc_diff);
     if (rotaryEncoder.isEncoderButtonDown())
         data->state = LV_INDEV_STATE_PRESSED;
     else
@@ -100,11 +100,13 @@ static void set_lv_drv()
     indev = lv_indev_drv_register(&indev_drv);
 }
 
-static void set_lv_group()
+static void set_lv_indev_group()
 {
-    encoder_group = lv_group_create();
-    lv_indev_set_group(indev, encoder_group);
-    lv_group_set_default(encoder_group);
+    indev_group = lv_group_create();
+    lv_indev_set_group(indev, indev_group);
+    lv_group_set_default(indev_group);
+    // lv_group_add_obj(indev_group, enter_tof_page->menu_cont);
+    // lv_group_add_obj(indev_group, enter_buzzer_page->menu_cont);
 }
 
 void set_lvgl()
@@ -112,6 +114,8 @@ void set_lvgl()
     set_rotary_encoder();
 
     set_lv_drv();
+
+    set_lv_indev_group();
 
     set_lv_style();
 
@@ -122,8 +126,6 @@ void set_lvgl()
     set_lv_main_screen();
 
     set_lv_charge_screen();
-
-    set_lv_group();
 
     lv_scr_load(main_screen);
 }
