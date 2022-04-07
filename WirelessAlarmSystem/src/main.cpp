@@ -1,9 +1,7 @@
 #include "file.h"
 #include "tof.h"
 #include "IP5108.h"
-#include "lvtft.h"
-// #include "lvtft_status_bar.h"
-// #include "lvtft_content.h"
+#include "lvtft.hpp"
 #include "netsrv.h"
 
 TaskHandle_t Task1;

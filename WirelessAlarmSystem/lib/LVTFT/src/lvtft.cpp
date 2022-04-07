@@ -3,10 +3,7 @@
 
 #include "lvtft_conf.h"
 #include "lvtft_style.h"
-#include "lvtft_status_bar.h"
-#include "lvtft_content.h"
-
-#include "lvtft.h"
+#include "lvtft.hpp"
 
 #define ROTARY_ENCODER_BUTTON_PIN 25
 #define ROTARY_ENCODER_A_PIN 27
@@ -49,9 +46,9 @@ static void set_rotary_encoder()
 {
     rotaryEncoder.begin();
     rotaryEncoder.setup(readEncoderISR);
-    rotaryEncoder.setBoundaries(-1000000, 1000000, false);
-    rotaryEncoder.setAcceleration(10000);
-    rotaryEncoder.setEncoderValue(0);
+    rotaryEncoder.setBoundaries(0, 10000, true);
+    rotaryEncoder.setAcceleration(150);
+    // rotaryEncoder.setEncoderValue(0);
 }
 
 static void encoder_read(lv_indev_drv_t *drv, lv_indev_data_t *data)

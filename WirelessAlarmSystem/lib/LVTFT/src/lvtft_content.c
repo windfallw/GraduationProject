@@ -2,6 +2,35 @@
 #include "lvtft_style.h"
 #include "lvtft_content.h"
 
+/*********************
+ *    main screen    *
+ *********************/
+lv_obj_t *main_screen;
+lv_obj_t *main_screen_bg;
+lv_obj_t *main_screen_menu;
+
+/* menu root page */
+menu_page_t *menu_root;
+
+/* tof subpage */
+menu_page_t *menu_sub_tof;
+menu_base_t *enter_tof_page;
+menu_slider_t *tof_limit_slider1;
+menu_slider_t *tof_limit_slider2;
+
+/* buzzer subpage */
+menu_page_t *menu_sub_buzzer;
+menu_base_t *enter_buzzer_page;
+menu_switch_t *buzzer_mute_switch;
+menu_slider_t *buzzer_duty_slider;
+menu_slider_t *buzzer_freq_slider;
+
+/*********************
+ *   charge screen   *
+ *********************/
+lv_obj_t *charge_screen;
+lv_obj_t *charge_animimg;
+
 LV_IMG_DECLARE(charging1);
 LV_IMG_DECLARE(charging2);
 LV_IMG_DECLARE(charging3);
@@ -29,6 +58,8 @@ static const lv_img_dsc_t *chargeImgs[12] = {
     &charging11,
     &charging12,
 };
+
+/* function */
 
 static menu_base_t *create_menu_base(lv_obj_t *parent, const char *icon, const char *title)
 {
@@ -155,8 +186,8 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
 
     menu_sub_tof->section = lv_menu_section_create(menu_sub_tof->page);
 
-    tof_limit_slider1 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 1", 0, 20000, 1000);
-    tof_limit_slider2 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 2", 0, 20000, 2333);
+    tof_limit_slider1 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 1", 0, 2000, 1000);
+    tof_limit_slider2 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 2", 0, 2000, 1550);
 
     /* create subpage buzzer */
     menu_sub_buzzer = lv_mem_alloc(sizeof(menu_page_t));

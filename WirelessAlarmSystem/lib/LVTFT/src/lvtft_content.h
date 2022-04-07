@@ -37,31 +37,31 @@ extern "C"
     /*********************
      *    main screen    *
      *********************/
-    lv_obj_t *main_screen;
-    lv_obj_t *main_screen_bg;
-    lv_obj_t *main_screen_menu;
+    extern lv_obj_t *main_screen;
+    extern lv_obj_t *main_screen_bg;
+    extern lv_obj_t *main_screen_menu;
 
     /* menu root page */
-    menu_page_t *menu_root;
+    extern menu_page_t *menu_root;
 
     /* tof subpage */
-    menu_page_t *menu_sub_tof;
-    menu_base_t *enter_tof_page;
-    menu_slider_t *tof_limit_slider1;
-    menu_slider_t *tof_limit_slider2;
+    extern menu_page_t *menu_sub_tof;
+    extern menu_base_t *enter_tof_page;
+    extern menu_slider_t *tof_limit_slider1;
+    extern menu_slider_t *tof_limit_slider2;
 
     /* buzzer subpage */
-    menu_page_t *menu_sub_buzzer;
-    menu_base_t *enter_buzzer_page;
-    menu_switch_t *buzzer_mute_switch;
-    menu_slider_t *buzzer_duty_slider;
-    menu_slider_t *buzzer_freq_slider;
+    extern menu_page_t *menu_sub_buzzer;
+    extern menu_base_t *enter_buzzer_page;
+    extern menu_switch_t *buzzer_mute_switch;
+    extern menu_slider_t *buzzer_duty_slider;
+    extern menu_slider_t *buzzer_freq_slider;
 
     /*********************
      *   charge screen   *
      *********************/
-    lv_obj_t *charge_screen;
-    lv_obj_t *charge_animimg;
+    extern lv_obj_t *charge_screen;
+    extern lv_obj_t *charge_animimg;
 
     void set_lv_main_screen();
     void set_lv_charge_screen();

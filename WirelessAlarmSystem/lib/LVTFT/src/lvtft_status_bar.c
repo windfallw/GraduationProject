@@ -2,6 +2,19 @@
 #include "lvtft_style.h"
 #include "lvtft_status_bar.h"
 
+/* Top Status Bar */
+lv_obj_t *top_status_bar;
+
+lv_obj_t *wifi_ico;
+lv_obj_t *wifi_txt;
+
+lv_obj_t *battery_level_txt;
+lv_obj_t *battery_level_ico;
+lv_obj_t *battery_lightning_ico;
+
+/* Bottom Status Bar */
+lv_obj_t *bottom_status_bar;
+
 /*
  * @brief set the top status bar on lv_layer_top()
  */

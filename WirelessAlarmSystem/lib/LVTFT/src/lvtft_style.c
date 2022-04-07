@@ -1,6 +1,22 @@
 #include "lvtft_conf.h"
 #include "lvtft_style.h"
 
+/* Color */
+lv_color_t light_color;
+lv_color_t white_color;
+lv_color_t dark_color;
+lv_color_t obj_bg_color;
+
+/* Style */
+lv_style_t style_top_status_bar;
+lv_style_t style_top_status_bar_font;
+
+lv_style_t style_bottom_status_bar;
+lv_style_t style_bottom_status_bar_font;
+
+lv_style_t style_main_screen_bg;
+lv_style_t style_main_screen_menu;
+
 static void set_lv_style_color()
 {
     /* Create color */
