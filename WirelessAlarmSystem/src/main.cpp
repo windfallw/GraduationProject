@@ -51,6 +51,10 @@ void update_ui()
 void Task1TOF(void *pvParameters)
 {
     Serial.printf("%s running on core %d with priority %d\r\n", pcTaskGetTaskName(NULL), xPortGetCoreID(), uxTaskPriorityGet(NULL));
+
+    skp1.start();
+    skp2.start();
+
     for (;;)
     {
         if (skp1.handler(cg.alarm.tof1) || skp2.handler(cg.alarm.tof2))
@@ -63,6 +67,9 @@ void Task1TOF(void *pvParameters)
 void Task2Scan(void *pvParameters)
 {
     Serial.printf("%s running on core %d with priority %d\r\n", pcTaskGetTaskName(NULL), xPortGetCoreID(), uxTaskPriorityGet(NULL));
+
+    bms.setup();
+
     for (;;)
     {
         if (buzzer.ReqOff)
@@ -98,13 +105,14 @@ void Task2Scan(void *pvParameters)
 void Task3TFT(void *pvParameters)
 {
     Serial.printf("%s running on core %d with priority %d\r\n", pcTaskGetTaskName(NULL), xPortGetCoreID(), uxTaskPriorityGet(NULL));
-    // TickType_t xLastWakeTime = xTaskGetTickCount();
+
+    set_lvgl();
+
     for (;;)
     {
         update_ui();
         lv_task_handler();
         vTaskDelay(1);
-        // vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));
     }
 }
 
@@ -114,13 +122,6 @@ void setup()
     Serial.setDebugOutput(true);
 
     set_littlefs();
-
-    skp1.start();
-    skp2.start();
-
-    bms.setup();
-
-    set_lvgl();
 
     /*  defalut ESP_TASK_PRIO_MAX = configMAX_PRIORITIES = 25
     but priority value range (0-24) set priority = -1 or bigger than 24 will auto correct to 24*/

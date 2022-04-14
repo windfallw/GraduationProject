@@ -18,11 +18,13 @@ void IP5108::setup()
     writeRegBit(SYS_CTL0, SYS_CTL0_BIT_FlashLight, false);
     writeRegBit(SYS_CTL0, SYS_CTL0_BIT_Light, false);
     writeRegBit(SYS_CTL1, SYS_CTL1_BIT_LowLoadOff, false);
-    writeRegBit(SYS_CTL1, SYS_CTL1_BIT_LoadInsertAutoStartUp, false);
+    writeRegBit(SYS_CTL1, SYS_CTL1_BIT_LoadInsertAutoStartUp, true);
 
     writeRegBit(SYS_CTL3, SYS_CTL3_BIT_DoubleShortPress, true);
-    writeRegBit(SYS_CTL5, SYS_CTL5_BIT_KeyShutdownSet, false);
+    writeRegBits(SYS_CTL3, SYS_CTL3_BIT_LongPressTimeSet, SYS_CTL3_BIT_LongPressTimeSet_1S);
+
     writeRegBit(SYS_CTL4, SYS_CTL4_BIT_VIN_PullOutBoost, true); // VIN °Î³ö¿ªÆô BOOST
+    writeRegBit(SYS_CTL5, SYS_CTL5_BIT_KeyShutdownSet, false);
 
     writeRegBits(MFP_CTL0, MFP_CTL0_BIT_LIGHT_Sel, MFP_CTL0_BIT_LIGHT_Sel_WLED);
     writeRegBits(MFP_CTL0, MFP_CTL0_BIT_L3_Sel, MFP_CTL0_BIT_L3_Sel_L3);
@@ -58,6 +60,12 @@ bool IP5108::readRegBit(REG_t reg, REG_BIT_t bit)
 
 void IP5108::writeReg(REG_t reg, uint8_t val)
 {
+    if (readReg(reg) == val)
+        return;
+
+    else
+        Serial.printf("write %d", val);
+
     i2c->beginTransmission(Address);
     i2c->write(reg);
     i2c->write(val);
@@ -149,7 +157,7 @@ void IP5108::getBattState()
 
     uint8_t Reg_Byte = readReg(Reg_READ0);
     State = Reg_Byte & Reg_READ0_BIT_ChargeStatusFlags;
-    
+
     isCharging = State == 0 ? false : true;
     ChargeFinish = (Reg_Byte & Reg_READ0_BIT_ChargeFinishFlag) == 0 ? false : true;
 }

@@ -1,6 +1,10 @@
 #include "file.h"
 
 #define FORMAT_LITTLEFS_IF_FAILED true
+#define CONFIG_LITTLEFS_BASE_PATH "/littlefs"
+#define CONFIG_LITTLEFS_MAX_OPEN_FILES 10
+#define CONFIG_LITTLEFS_PARTITION_LABEL "littlefs"
+
 #define CONFIG_LITTLEFS_SPIFFS_COMPAT false
 #define CONFIG_LITTLEFS_CACHE_SIZE 512
 
@@ -32,7 +36,7 @@ struct conn_t CONN_SIGN;
 
 void set_littlefs()
 {
-    if (!LITTLEFS.begin(FORMAT_LITTLEFS_IF_FAILED))
+    if (!LITTLEFS.begin(FORMAT_LITTLEFS_IF_FAILED, CONFIG_LITTLEFS_BASE_PATH, CONFIG_LITTLEFS_MAX_OPEN_FILES, CONFIG_LITTLEFS_PARTITION_LABEL))
     {
         Serial.println(F("LITTLEFS Mount Failed"));
         return;
