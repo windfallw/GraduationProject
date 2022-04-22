@@ -23,7 +23,7 @@ void IP5108::setup()
     writeRegBit(SYS_CTL3, SYS_CTL3_BIT_DoubleShortPress, true);
     writeRegBits(SYS_CTL3, SYS_CTL3_BIT_LongPressTimeSet, SYS_CTL3_BIT_LongPressTimeSet_1S);
 
-    writeRegBit(SYS_CTL4, SYS_CTL4_BIT_VIN_PullOutBoost, true); // VIN 拔出开启 BOOST
+    writeRegBit(SYS_CTL4, SYS_CTL4_BIT_VIN_PullOutBoost, false); // VIN 拔出不开启 BOOST
     writeRegBit(SYS_CTL5, SYS_CTL5_BIT_KeyShutdownSet, false);
 
     writeRegBits(MFP_CTL0, MFP_CTL0_BIT_LIGHT_Sel, MFP_CTL0_BIT_LIGHT_Sel_WLED);

@@ -2,16 +2,8 @@
     "wifi": {
         "sta": [
             {
-                "ssid": "example1",
-                "pwd": "password1"
-            },
-            {
-                "ssid": "example2",
-                "pwd": "password2"
-            },
-            {
-                "ssid": "example3",
-                "pwd": "password3"
+                "ssid": "example",
+                "pwd": "password"
             }
         ],
         "ap": {
@@ -20,11 +12,18 @@
         }
     },
     "alarm": {
+        "tofMax": 20000,
         "tof1": 1000,
         "tof2": 1000,
-        "ms": 500
+        "msMax": 10000,
+        "ms": 1000,
+        "freq": 10,
+        "dutyCycle": 30
     },
     "mqtt": {
+        "macddr": "ESP32 STA MAC",
+        "user": "user",
+        "pwd": "pwd",
         "subscribe": "server-publish",
         "publish": "client-submit",
         "server": "example.com",
