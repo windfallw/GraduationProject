@@ -57,6 +57,29 @@ static menu_base_t *create_menu_base(lv_obj_t *parent, const char *icon, const c
     return base;
 }
 
+static menu_text_t *create_menu_text(lv_obj_t *parent, const char *title, const char *content)
+{
+    menu_text_t *text = lv_mem_alloc(sizeof(menu_text_t));
+
+    text->menu_cont = lv_menu_cont_create(parent);
+
+    text->title = lv_label_create(text->menu_cont);
+    lv_label_set_long_mode(text->title, LV_LABEL_LONG_SCROLL_CIRCULAR);
+    lv_obj_set_flex_grow(text->title, 1);
+
+    text->content = lv_label_create(text->menu_cont);
+    lv_label_set_long_mode(text->content, LV_LABEL_LONG_SCROLL_CIRCULAR);
+    lv_obj_set_flex_grow(text->content, 0);
+
+    if (title)
+        lv_label_set_text(text->title, title);
+
+    if (content)
+        lv_label_set_text(text->content, content);
+
+    return text;
+}
+
 static menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, const char *title, uint32_t min, uint32_t max, uint32_t val)
 {
     menu_slider_t *obj = lv_mem_alloc(sizeof(menu_slider_t));
@@ -199,10 +222,10 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
 
     /* create subpage bms */
     menu_sub_bms = create_menu_subpage(main_screen_menu, "Battery Information");
-    bms_current = create_menu_base(menu_sub_bms->section, "Current (mA)", "1000");
-    bms_voltage = create_menu_base(menu_sub_bms->section, "Voltage (mV)", "12.3");
-    bms_voltage_oc = create_menu_base(menu_sub_bms->section, "VoltageOC (mV)", "12.3");
-    bms_state = create_menu_base(menu_sub_bms->section, "State Code", "92");
+    bms_current = create_menu_text(menu_sub_bms->section, "Current (mA)", "1000");
+    bms_voltage = create_menu_text(menu_sub_bms->section, "Voltage (mV)", "12.3");
+    bms_voltage_oc = create_menu_text(menu_sub_bms->section, "VoltageOC (mV)", NULL);
+    bms_state = create_menu_text(menu_sub_bms->section, "State Code", "92");
 
     /* create root page */
     menu_root = lv_mem_alloc(sizeof(menu_page_t));
@@ -230,6 +253,39 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
     menu_load_page(enter_nw_page);
 }
 
+static void anim_timer_cb(lv_timer_t *timer)
+{
+    lv_obj_add_flag(charge_bg, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(charge_animimg, LV_OBJ_FLAG_HIDDEN);
+    lv_timer_pause(charge_anim_timer);
+}
+
+/*
+ * @brief set the charge screen
+ * @param parent lv_obj_t *parent object
+ */
+static void set_lv_charge_anim()
+{
+    charge_bg = lv_obj_create(lv_layer_top());
+    lv_obj_add_flag(charge_bg, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_remove_style_all(charge_bg);
+    lv_obj_add_style(charge_bg, &style_main_screen_bg, 0);
+    lv_obj_set_style_opa(charge_bg, LV_OPA_50, 0);
+
+    charge_animimg = lv_animimg_create(lv_layer_top());
+    lv_obj_add_flag(charge_animimg, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_align(charge_animimg, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_style_opa(charge_animimg, LV_OPA_80, 0);
+
+    lv_animimg_set_src(charge_animimg, (lv_img_dsc_t **)chargeImgs, 12);
+    lv_animimg_set_duration(charge_animimg, 1000);
+    lv_animimg_set_repeat_count(charge_animimg, 0);
+
+    charge_anim_timer = lv_timer_create(anim_timer_cb, 500, NULL);
+    lv_timer_pause(charge_anim_timer);
+    lv_timer_reset(charge_anim_timer);
+}
+
 /*
  * @brief set the main screen
  */
@@ -245,35 +301,23 @@ void set_lv_main_screen()
 
     /* create menu on main screen background */
     set_lv_main_screen_menu(main_screen_bg);
-}
-
-void menu_load_page(menu_base_t *obj)
-{
-    lv_event_send(obj->menu_cont, LV_EVENT_CLICKED, NULL);
-}
-
-/*
- * @brief set the charge screen
- */
-void set_lv_charge_screen()
-{
-    charge_screen = lv_obj_create(NULL);
-    lv_obj_clear_flag(main_screen_bg, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(main_screen_bg, LV_OBJ_FLAG_SCROLLABLE);
-
-    charge_animimg = lv_animimg_create(charge_screen);
-    lv_obj_align(charge_animimg, LV_ALIGN_CENTER, 0, 0);
-    lv_animimg_set_src(charge_animimg, (lv_img_dsc_t **)chargeImgs, 12);
-    lv_animimg_set_duration(charge_animimg, 1000);
-    lv_animimg_set_repeat_count(charge_animimg, 1);
+    /* create charge animation on top layer */
+    set_lv_charge_anim();
 }
 
 /*
  * @brief show charging animation and return to main screen
  */
-void show_lv_charge_screen()
+void show_lv_charge_anim()
 {
+    lv_obj_clear_flag(charge_bg, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(charge_animimg, LV_OBJ_FLAG_HIDDEN);
     lv_animimg_start(charge_animimg);
-    lv_scr_load(charge_screen);
-    lv_scr_load_anim(main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 1000, 0, false);
+    lv_timer_reset(charge_anim_timer);
+    lv_timer_resume(charge_anim_timer);
+}
+
+void menu_load_page(menu_base_t *obj)
+{
+    lv_event_send(obj->menu_cont, LV_EVENT_CLICKED, NULL);
 }

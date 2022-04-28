@@ -49,6 +49,10 @@ lv_obj_t *main_screen;
 lv_obj_t *main_screen_bg;
 lv_obj_t *main_screen_menu;
 
+lv_obj_t *charge_bg;
+lv_obj_t *charge_animimg;
+lv_timer_t *charge_anim_timer;
+
 /* menu root page */
 menu_page_t *menu_root;
 
@@ -74,22 +78,13 @@ menu_slider_t *buzzer_freq_slider;
 /* bms subpage */
 menu_page_t *menu_sub_bms;
 menu_base_t *enter_bms_page;
-menu_base_t *bms_current;
-menu_base_t *bms_voltage;
-menu_base_t *bms_voltage_oc;
-menu_base_t *bms_state;
+menu_text_t *bms_current;
+menu_text_t *bms_voltage;
+menu_text_t *bms_voltage_oc;
+menu_text_t *bms_state;
 
 void set_lv_main_screen();
-
+void show_lv_charge_anim();
 void menu_load_page(menu_base_t *obj);
-
-/*********************
- *   charge screen   *
- *********************/
-lv_obj_t *charge_screen;
-lv_obj_t *charge_animimg;
-
-void set_lv_charge_screen();
-void show_lv_charge_screen();
 
 #endif

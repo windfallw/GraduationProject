@@ -31,6 +31,8 @@ int main(void)
 
   while (1)
   {
+    // show_lv_charge_anim();
+
     for (int i = 0; i <= 100; i++)
     {
       lv_label_set_text_fmt(top_bar->level_txt, "%d%%", i);
