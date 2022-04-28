@@ -4,17 +4,27 @@
 #include "lvgl.h"
 
 /* Top Status Bar */
-lv_obj_t *top_status_bar;
 
-lv_obj_t *wifi_ico;
-lv_obj_t *wifi_txt;
+typedef struct
+{
+    lv_obj_t *obj;
+    lv_obj_t *wifi_ico;
+    lv_obj_t *wifi_txt;
+    lv_obj_t *level_txt;
+    lv_obj_t *level_ico;
+    lv_obj_t *lightning_ico;
+} top_status_bar_t;
 
-lv_obj_t *battery_level_txt;
-lv_obj_t *battery_level_ico;
-lv_obj_t *battery_lightning_ico;
+top_status_bar_t *top_bar;
 
 /* Bottom Status Bar */
-lv_obj_t *bottom_status_bar;
+
+typedef struct
+{
+    lv_obj_t *obj;
+} bottom_status_bar_t;
+
+bottom_status_bar_t *bottom_bar;
 
 void set_lv_top_status_bar();
 void align_lv_top_status_bar();

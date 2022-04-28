@@ -14,6 +14,4 @@ void set_lvgl()
     set_lv_bottom_status_bar();
 
     set_lv_main_screen();
-
-    set_lv_charge_screen();
 }

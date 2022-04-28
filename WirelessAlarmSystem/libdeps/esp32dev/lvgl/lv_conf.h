@@ -498,8 +498,9 @@ e.g. "stm32f769xx.h" or "stm32f429xx.h"*/
 /*A layout similar to Grid in CSS.*/
 #define LV_USE_GRID     1
 
-
 #define LV_USE_GIF      0
+
+#define LV_USE_QRCODE   1
 
 /*==================
 * EXAMPLES

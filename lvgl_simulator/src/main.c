@@ -24,18 +24,16 @@ int main(void)
 
   lv_scr_load(main_screen);
 
-  lv_label_set_text(wifi_txt, "STA ESPSTA | AP ESPAP");
-  lv_label_set_text(battery_level_ico, LV_SYMBOL_BATTERY_FULL);
+  lv_label_set_text(top_bar->wifi_txt, "ESPSTA");
+  lv_label_set_text(top_bar->level_ico, LV_SYMBOL_BATTERY_FULL);
 
-  lv_obj_clear_flag(battery_lightning_ico, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_clear_flag(top_bar->lightning_ico, LV_OBJ_FLAG_HIDDEN);
 
   while (1)
   {
-    // show_lv_charge_screen();
-
     for (int i = 0; i <= 100; i++)
     {
-      lv_label_set_text_fmt(battery_level_txt, "%d%%", i);
+      lv_label_set_text_fmt(top_bar->level_txt, "%d%%", i);
       align_lv_top_status_bar();
       lv_task_handler();
       SDL_Delay(5);

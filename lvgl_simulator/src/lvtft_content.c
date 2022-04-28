@@ -100,6 +100,40 @@ static menu_switch_t *create_menu_switch(lv_obj_t *parent, const char *icon, con
     return obj;
 }
 
+static menu_qrcode_t *create_menu_qrcode(lv_obj_t *parent, const char *icon, const char *title)
+{
+    menu_qrcode_t *obj = lv_mem_alloc(sizeof(menu_qrcode_t));
+
+    obj->base = create_menu_base(parent, icon, title);
+
+    obj->qr = lv_qrcode_create(obj->base->menu_cont, MAIN_SCREEN_MENU_QR_CODE_SIZE, obj_bg_color, white_color);
+
+    const char *data = "WIFI:T:WPA2;S:ESP2BF8;P:12345678;H:false;";
+
+    lv_qrcode_update(obj->qr, data, strlen(data));
+    lv_obj_center(obj->qr);
+
+    lv_obj_set_style_border_color(obj->qr, white_color, 0);
+    lv_obj_set_style_border_width(obj->qr, MAIN_SCREEN_MENU_QR_CODE_BORDER_WIDTH, 0);
+
+    lv_obj_set_style_pad_hor(obj->base->menu_cont, MAIN_SCREEN_MENU_PAGE_CONT_PAD_HOR, 0);
+
+    return obj;
+}
+
+static menu_page_t *create_menu_subpage(lv_obj_t *parent, char *title)
+{
+    menu_page_t *obj = lv_mem_alloc(sizeof(menu_page_t));
+
+    obj->page = lv_menu_page_create(parent, title);
+    lv_menu_separator_create(obj->page);
+    lv_obj_set_style_pad_hor(obj->page, MAIN_SCREEN_MENU_SUBPAGE_PAD_HOR, 0);
+
+    obj->section = lv_menu_section_create(obj->page);
+
+    return obj;
+}
+
 /*
  * @brief handler for the root back button
  * @param event lv_event_t event
@@ -123,9 +157,10 @@ static void root_back_btn_handler(lv_event_t *event)
             /* show sidebar page */
             lv_menu_set_page(menu, NULL);
             lv_menu_set_sidebar_page(menu, menu_root->page);
+
             /* ! set sidebar header icon after sidebar page is set ! */
             // lv_img_set_src(lv_obj_get_child(lv_menu_get_sidebar_header_back_btn(menu), 0), LV_SYMBOL_REFRESH);
-            lv_event_send(enter_tof_page->menu_cont, LV_EVENT_CLICKED, NULL);
+            menu_load_page(enter_nw_page);
         }
     }
 }
@@ -146,30 +181,28 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
     lv_menu_set_mode_root_back_btn(main_screen_menu, LV_MENU_ROOT_BACK_BTN_ENABLED);
     lv_obj_add_event_cb(main_screen_menu, root_back_btn_handler, LV_EVENT_CLICKED, main_screen_menu);
 
+    /* create subpage network */
+    menu_sub_nw = create_menu_subpage(main_screen_menu, "Network Settings");
+    nw_ap_switch = create_menu_switch(menu_sub_nw->section, LV_SYMBOL_WIFI, "Access Point", false);
+    nw_ap_qrcode = create_menu_qrcode(menu_sub_nw->section, NULL, "AP QRCode");
+
     /* create subpage tof */
-    menu_sub_tof = lv_mem_alloc(sizeof(menu_page_t));
-    menu_sub_tof->page = lv_menu_page_create(main_screen_menu, "Alarm Threshold");
-
-    lv_menu_separator_create(menu_sub_tof->page);
-    lv_obj_set_style_pad_hor(menu_sub_tof->page, MAIN_SCREEN_MENU_SUBPAGE_PAD_HOR, 0);
-
-    menu_sub_tof->section = lv_menu_section_create(menu_sub_tof->page);
-
+    menu_sub_tof = create_menu_subpage(main_screen_menu, "Alarm Threshold");
     tof_limit_slider1 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 1", 0, 20000, 1000);
     tof_limit_slider2 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 2", 0, 20000, 2333);
 
     /* create subpage buzzer */
-    menu_sub_buzzer = lv_mem_alloc(sizeof(menu_page_t));
-    menu_sub_buzzer->page = lv_menu_page_create(main_screen_menu, "PWM of Buzzer & LED");
-
-    lv_menu_separator_create(menu_sub_buzzer->page);
-    lv_obj_set_style_pad_hor(menu_sub_buzzer->page, MAIN_SCREEN_MENU_SUBPAGE_PAD_HOR, 0);
-
-    menu_sub_buzzer->section = lv_menu_section_create(menu_sub_buzzer->page);
-
+    menu_sub_buzzer = create_menu_subpage(main_screen_menu, "PWM of Buzzer & LED");
     buzzer_mute_switch = create_menu_switch(menu_sub_buzzer->section, LV_SYMBOL_AUDIO, "mute", false);
     buzzer_duty_slider = create_menu_slider(menu_sub_buzzer->section, NULL, "duty cycle", 0, 255, 30);
     buzzer_freq_slider = create_menu_slider(menu_sub_buzzer->section, NULL, "frequency", 0, 100, 10);
+
+    /* create subpage bms */
+    menu_sub_bms = create_menu_subpage(main_screen_menu, "Battery Information");
+    bms_current = create_menu_base(menu_sub_bms->section, "Current (mA)", "1000");
+    bms_voltage = create_menu_base(menu_sub_bms->section, "Voltage (mV)", "12.3");
+    bms_voltage_oc = create_menu_base(menu_sub_bms->section, "VoltageOC (mV)", "12.3");
+    bms_state = create_menu_base(menu_sub_bms->section, "State Code", "92");
 
     /* create root page */
     menu_root = lv_mem_alloc(sizeof(menu_page_t));
@@ -178,18 +211,23 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
 
     menu_root->section = lv_menu_section_create(menu_root->page);
 
+    enter_nw_page = create_menu_base(menu_root->section, LV_SYMBOL_SETTINGS, "Service");
     enter_tof_page = create_menu_base(menu_root->section, LV_SYMBOL_SETTINGS, "Measure");
     enter_buzzer_page = create_menu_base(menu_root->section, LV_SYMBOL_SETTINGS, "Alarm");
+    enter_bms_page = create_menu_base(menu_root->section, LV_SYMBOL_SETTINGS, "Battery");
 
     /* set the load page event */
+    lv_menu_set_load_page_event(main_screen_menu, enter_nw_page->menu_cont, menu_sub_nw->page);
     lv_menu_set_load_page_event(main_screen_menu, enter_tof_page->menu_cont, menu_sub_tof->page);
     lv_menu_set_load_page_event(main_screen_menu, enter_buzzer_page->menu_cont, menu_sub_buzzer->page);
+    lv_menu_set_load_page_event(main_screen_menu, enter_bms_page->menu_cont, menu_sub_bms->page);
 
     /* set siderbar page */
     lv_menu_set_sidebar_page(main_screen_menu, menu_root->page);
+
     /* ! set sidebar header icon after sidebar page is set ! */
     // lv_img_set_src(lv_obj_get_child(lv_menu_get_sidebar_header_back_btn(main_screen_menu), 0), LV_SYMBOL_REFRESH);
-    lv_event_send(enter_tof_page->menu_cont, LV_EVENT_CLICKED, NULL);
+    menu_load_page(enter_nw_page);
 }
 
 /*
@@ -207,6 +245,11 @@ void set_lv_main_screen()
 
     /* create menu on main screen background */
     set_lv_main_screen_menu(main_screen_bg);
+}
+
+void menu_load_page(menu_base_t *obj)
+{
+    lv_event_send(obj->menu_cont, LV_EVENT_CLICKED, NULL);
 }
 
 /*

@@ -18,6 +18,13 @@ typedef struct
 
 typedef struct
 {
+    lv_obj_t *menu_cont;
+    lv_obj_t *title;
+    lv_obj_t *content;
+} menu_text_t;
+
+typedef struct
+{
     menu_base_t *base;
     lv_obj_t *slider;
     lv_obj_t *slider_val;
@@ -29,6 +36,12 @@ typedef struct
     lv_obj_t *sw;
 } menu_switch_t;
 
+typedef struct
+{
+    menu_base_t *base;
+    lv_obj_t *qr;
+} menu_qrcode_t;
+
 /*********************
  *    main screen    *
  *********************/
@@ -38,6 +51,12 @@ lv_obj_t *main_screen_menu;
 
 /* menu root page */
 menu_page_t *menu_root;
+
+/* network subpage */
+menu_page_t *menu_sub_nw;
+menu_base_t *enter_nw_page;
+menu_switch_t *nw_ap_switch;
+menu_qrcode_t *nw_ap_qrcode;
 
 /* tof subpage */
 menu_page_t *menu_sub_tof;
@@ -52,13 +71,24 @@ menu_switch_t *buzzer_mute_switch;
 menu_slider_t *buzzer_duty_slider;
 menu_slider_t *buzzer_freq_slider;
 
+/* bms subpage */
+menu_page_t *menu_sub_bms;
+menu_base_t *enter_bms_page;
+menu_base_t *bms_current;
+menu_base_t *bms_voltage;
+menu_base_t *bms_voltage_oc;
+menu_base_t *bms_state;
+
+void set_lv_main_screen();
+
+void menu_load_page(menu_base_t *obj);
+
 /*********************
  *   charge screen   *
  *********************/
 lv_obj_t *charge_screen;
 lv_obj_t *charge_animimg;
 
-void set_lv_main_screen();
 void set_lv_charge_screen();
 void show_lv_charge_screen();
 
