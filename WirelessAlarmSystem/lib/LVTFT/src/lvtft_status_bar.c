@@ -3,58 +3,53 @@
 #include "lvtft_status_bar.h"
 
 /* Top Status Bar */
-lv_obj_t *top_status_bar;
-
-lv_obj_t *wifi_ico;
-lv_obj_t *wifi_txt;
-
-lv_obj_t *battery_level_txt;
-lv_obj_t *battery_level_ico;
-lv_obj_t *battery_lightning_ico;
+top_status_bar_t *top_bar;
 
 /* Bottom Status Bar */
-lv_obj_t *bottom_status_bar;
+bottom_status_bar_t *bottom_bar;
 
 /*
  * @brief set the top status bar on lv_layer_top()
  */
 void set_lv_top_status_bar()
 {
-    top_status_bar = lv_obj_create(lv_layer_top());
-    lv_obj_clear_flag(top_status_bar, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(top_status_bar, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_remove_style_all(top_status_bar);
-    lv_obj_add_style(top_status_bar, &style_top_status_bar, 0);
+    top_bar = lv_mem_alloc(sizeof(top_status_bar_t));
+
+    top_bar->obj = lv_obj_create(lv_layer_top());
+    lv_obj_clear_flag(top_bar->obj, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(top_bar->obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_remove_style_all(top_bar->obj);
+    lv_obj_add_style(top_bar->obj, &style_top_status_bar, 0);
 
     /* wifi icon */
-    wifi_ico = lv_label_create(top_status_bar);
-    lv_obj_add_style(wifi_ico, &style_top_status_bar_font, 0);
-    lv_label_set_text(wifi_ico, LV_SYMBOL_WIFI);
+    top_bar->wifi_ico = lv_label_create(top_bar->obj);
+    lv_obj_add_style(top_bar->wifi_ico, &style_top_status_bar_font, 0);
+    lv_label_set_text(top_bar->wifi_ico, LV_SYMBOL_WIFI);
 
     /* wifi text */
-    wifi_txt = lv_label_create(top_status_bar);
-    lv_obj_add_style(wifi_txt, &style_top_status_bar_font, 0);
+    top_bar->wifi_txt = lv_label_create(top_bar->obj);
+    lv_obj_add_style(top_bar->wifi_txt, &style_top_status_bar_font, 0);
 
     /* battery level txt */
-    battery_level_txt = lv_label_create(top_status_bar);
-    lv_obj_add_style(battery_level_txt, &style_top_status_bar_font, 0);
+    top_bar->level_txt = lv_label_create(top_bar->obj);
+    lv_obj_add_style(top_bar->level_txt, &style_top_status_bar_font, 0);
 
     /* battery level icon */
-    battery_level_ico = lv_label_create(top_status_bar);
-    lv_obj_add_style(battery_level_ico, &style_top_status_bar_font, 0);
+    top_bar->level_ico = lv_label_create(top_bar->obj);
+    lv_obj_add_style(top_bar->level_ico, &style_top_status_bar_font, 0);
 
     /* battery lightning icon */
-    battery_lightning_ico = lv_label_create(top_status_bar);
-    lv_obj_add_flag(battery_lightning_ico, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_style(battery_lightning_ico, &style_top_status_bar_font, 0);
-    lv_obj_set_style_text_color(battery_lightning_ico, light_color, 0);
-    lv_label_set_text(battery_lightning_ico, LV_SYMBOL_CHARGE);
+    top_bar->lightning_ico = lv_label_create(top_bar->obj);
+    lv_obj_add_flag(top_bar->lightning_ico, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_style(top_bar->lightning_ico, &style_top_status_bar_font, 0);
+    lv_obj_set_style_text_color(top_bar->lightning_ico, light_color, 0);
+    lv_label_set_text(top_bar->lightning_ico, LV_SYMBOL_CHARGE);
 
     /******************
      *     ALIGN      *
      ******************/
-    lv_obj_align(wifi_ico, LV_ALIGN_LEFT_MID, 0, 0);
-    lv_obj_align(battery_level_txt, LV_ALIGN_RIGHT_MID, 0, 0);
+    lv_obj_align(top_bar->wifi_ico, LV_ALIGN_LEFT_MID, 0, 0);
+    lv_obj_align(top_bar->level_txt, LV_ALIGN_RIGHT_MID, 0, 0);
 
     align_lv_top_status_bar();
 }
@@ -64,9 +59,9 @@ void set_lv_top_status_bar()
  */
 void align_lv_top_status_bar()
 {
-    lv_obj_align_to(wifi_txt, wifi_ico, LV_ALIGN_OUT_RIGHT_MID, 0, 0);
-    lv_obj_align_to(battery_level_ico, battery_level_txt, LV_ALIGN_OUT_LEFT_MID, 0, 0);
-    lv_obj_align_to(battery_lightning_ico, battery_level_ico, LV_ALIGN_OUT_LEFT_MID, 0, 0);
+    lv_obj_align_to(top_bar->wifi_txt, top_bar->wifi_ico, LV_ALIGN_OUT_RIGHT_MID, 0, 0);
+    lv_obj_align_to(top_bar->level_ico, top_bar->level_txt, LV_ALIGN_OUT_LEFT_MID, 0, 0);
+    lv_obj_align_to(top_bar->lightning_ico, top_bar->level_ico, LV_ALIGN_OUT_LEFT_MID, 0, 0);
 }
 
 /*
@@ -74,11 +69,12 @@ void align_lv_top_status_bar()
  */
 void set_lv_bottom_status_bar()
 {
-    bottom_status_bar = lv_obj_create(lv_layer_top());
-    lv_obj_clear_flag(bottom_status_bar, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(bottom_status_bar, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_remove_style_all(bottom_status_bar);
-    lv_obj_add_style(bottom_status_bar, &style_bottom_status_bar, 0);
+    bottom_bar = lv_mem_alloc(sizeof(bottom_status_bar_t));
+    bottom_bar->obj = lv_obj_create(lv_layer_top());
+    lv_obj_clear_flag(bottom_bar->obj, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(bottom_bar->obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_remove_style_all(bottom_bar->obj);
+    lv_obj_add_style(bottom_bar->obj, &style_bottom_status_bar, 0);
 
     /******************
      *     ALIGN      *

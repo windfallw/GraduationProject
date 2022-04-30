@@ -9,17 +9,25 @@ extern "C"
 #include "lvgl.h"
 
     /* Top Status Bar */
-    extern lv_obj_t *top_status_bar;
+    typedef struct
+    {
+        lv_obj_t *obj;
+        lv_obj_t *wifi_ico;
+        lv_obj_t *wifi_txt;
+        lv_obj_t *level_txt;
+        lv_obj_t *level_ico;
+        lv_obj_t *lightning_ico;
+    } top_status_bar_t;
 
-    extern lv_obj_t *wifi_ico;
-    extern lv_obj_t *wifi_txt;
-
-    extern lv_obj_t *battery_level_txt;
-    extern lv_obj_t *battery_level_ico;
-    extern lv_obj_t *battery_lightning_ico;
+    extern top_status_bar_t *top_bar;
 
     /* Bottom Status Bar */
-    extern lv_obj_t *bottom_status_bar;
+    typedef struct
+    {
+        lv_obj_t *obj;
+    } bottom_status_bar_t;
+
+    extern bottom_status_bar_t *bottom_bar;
 
     void set_lv_top_status_bar();
     void align_lv_top_status_bar();

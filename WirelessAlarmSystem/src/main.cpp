@@ -20,26 +20,26 @@ shinelight buzzer = shinelight(0, 13, 0);
 
 void update_ui()
 {
-    lv_label_set_text(wifi_txt, WiFi.SSID().c_str());
-    lv_label_set_text_fmt(battery_level_txt, "%d%%", bms.percent);
+    lv_label_set_text(top_bar->wifi_txt, WiFi.SSID().c_str());
+    lv_label_set_text_fmt(top_bar->level_txt, "%d%%", bms.percent);
 
     if (bms.percent >= 80)
-        lv_label_set_text(battery_level_ico, LV_SYMBOL_BATTERY_FULL);
+        lv_label_set_text(top_bar->level_ico, LV_SYMBOL_BATTERY_FULL);
     else if (bms.percent >= 60)
-        lv_label_set_text(battery_level_ico, LV_SYMBOL_BATTERY_3);
+        lv_label_set_text(top_bar->level_ico, LV_SYMBOL_BATTERY_3);
     else if (bms.percent >= 40)
-        lv_label_set_text(battery_level_ico, LV_SYMBOL_BATTERY_2);
+        lv_label_set_text(top_bar->level_ico, LV_SYMBOL_BATTERY_2);
     else if (bms.percent >= 20)
-        lv_label_set_text(battery_level_ico, LV_SYMBOL_BATTERY_1);
+        lv_label_set_text(top_bar->level_ico, LV_SYMBOL_BATTERY_1);
     else
-        lv_label_set_text(battery_level_ico, LV_SYMBOL_BATTERY_EMPTY);
+        lv_label_set_text(top_bar->level_ico, LV_SYMBOL_BATTERY_EMPTY);
 
     if (bms.isCharging)
     {
-        lv_obj_clear_flag(battery_lightning_ico, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(top_bar->lightning_ico, LV_OBJ_FLAG_HIDDEN);
     }
     else
-        lv_obj_add_flag(battery_lightning_ico, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(top_bar->lightning_ico, LV_OBJ_FLAG_HIDDEN);
 
     // lv_label_set_text_fmt(tof_label, "当前: %d mm %d mm", skp1.distance, skp2.distance);
     // lv_label_set_text_fmt(bt_label, "%d mA %d mV %d mV %d", bms.current, bms.voltage, bms.voltageOc, bms.State);

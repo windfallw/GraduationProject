@@ -23,7 +23,15 @@ extern "C"
 
     typedef struct
     {
+        lv_obj_t *menu_cont;
+        lv_obj_t *title;
+        lv_obj_t *content;
+    } menu_text_t;
+
+    typedef struct
+    {
         menu_base_t *base;
+        lv_obj_t *val;
         lv_obj_t *slider;
         lv_obj_t *slider_val;
     } menu_slider_t;
@@ -34,6 +42,12 @@ extern "C"
         lv_obj_t *sw;
     } menu_switch_t;
 
+    typedef struct
+    {
+        menu_base_t *base;
+        lv_obj_t *qr;
+    } menu_qrcode_t;
+
     /*********************
      *    main screen    *
      *********************/
@@ -41,8 +55,19 @@ extern "C"
     extern lv_obj_t *main_screen_bg;
     extern lv_obj_t *main_screen_menu;
 
+    extern lv_obj_t *charge_bg;
+    extern lv_obj_t *charge_animimg;
+    extern lv_timer_t *charge_anim_timer;
+
     /* menu root page */
     extern menu_page_t *menu_root;
+
+    /* network subpage */
+    extern menu_page_t *menu_sub_nw;
+    extern menu_base_t *enter_nw_page;
+    extern menu_text_t *nw_sta_ip;
+    extern menu_switch_t *nw_ap_switch;
+    extern menu_qrcode_t *nw_ap_qrcode;
 
     /* tof subpage */
     extern menu_page_t *menu_sub_tof;
@@ -57,15 +82,17 @@ extern "C"
     extern menu_slider_t *buzzer_duty_slider;
     extern menu_slider_t *buzzer_freq_slider;
 
-    /*********************
-     *   charge screen   *
-     *********************/
-    extern lv_obj_t *charge_screen;
-    extern lv_obj_t *charge_animimg;
+    /* bms subpage */
+    extern menu_page_t *menu_sub_bms;
+    extern menu_base_t *enter_bms_page;
+    extern menu_text_t *bms_current;
+    extern menu_text_t *bms_voltage;
+    extern menu_text_t *bms_voltage_oc;
+    extern menu_text_t *bms_state;
 
     void set_lv_main_screen();
-    void set_lv_charge_screen();
     void show_lv_charge_screen();
+    void menu_load_page(menu_base_t *obj);
 
 #ifdef __cplusplus
 }
