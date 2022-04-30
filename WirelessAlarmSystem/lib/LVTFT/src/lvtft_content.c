@@ -20,7 +20,7 @@ menu_page_t *menu_root;
 menu_page_t *menu_sub_nw;
 menu_base_t *enter_nw_page;
 menu_text_t *nw_sta_ip;
-menu_switch_t *nw_ap_switch;
+menu_text_t *nw_ap;
 menu_qrcode_t *nw_ap_qrcode;
 
 /* tof subpage */
@@ -71,8 +71,6 @@ static const lv_img_dsc_t *chargeImgs[12] = {
     &charging11,
     &charging12,
 };
-
-/* function */
 
 static menu_base_t *create_menu_base(lv_obj_t *parent, const char *icon, const char *title)
 {
@@ -274,7 +272,7 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
     /* create subpage network */
     menu_sub_nw = create_menu_subpage(main_screen_menu, "Network Settings");
     nw_sta_ip = create_menu_text(menu_sub_nw->section, "Station IP", NULL);
-    nw_ap_switch = create_menu_switch(menu_sub_nw->section, NULL, "Access Point", false);
+    nw_ap = create_menu_text(menu_sub_nw->section, "Access Point", NULL);
     nw_ap_qrcode = create_menu_qrcode(menu_sub_nw->section, NULL, "AP QRCode");
 
     /* create subpage tof */
@@ -335,12 +333,16 @@ static void anim_timer_cb(lv_timer_t *timer)
 static void set_lv_charge_anim()
 {
     charge_bg = lv_obj_create(lv_layer_top());
+    lv_obj_clear_flag(charge_bg, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(charge_bg, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_flag(charge_bg, LV_OBJ_FLAG_HIDDEN);
     lv_obj_remove_style_all(charge_bg);
     lv_obj_add_style(charge_bg, &style_main_screen_bg, 0);
     lv_obj_set_style_opa(charge_bg, LV_OPA_50, 0);
 
     charge_animimg = lv_animimg_create(lv_layer_top());
+    lv_obj_clear_flag(charge_animimg, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(charge_animimg, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_flag(charge_animimg, LV_OBJ_FLAG_HIDDEN);
     lv_obj_align(charge_animimg, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_opa(charge_animimg, LV_OPA_80, 0);

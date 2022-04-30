@@ -66,7 +66,7 @@ extern "C"
     extern menu_page_t *menu_sub_nw;
     extern menu_base_t *enter_nw_page;
     extern menu_text_t *nw_sta_ip;
-    extern menu_switch_t *nw_ap_switch;
+    extern menu_text_t *nw_ap;
     extern menu_qrcode_t *nw_ap_qrcode;
 
     /* tof subpage */
