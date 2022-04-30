@@ -26,6 +26,7 @@ typedef struct
 typedef struct
 {
     menu_base_t *base;
+    lv_obj_t *val;
     lv_obj_t *slider;
     lv_obj_t *slider_val;
 } menu_slider_t;
@@ -59,6 +60,7 @@ menu_page_t *menu_root;
 /* network subpage */
 menu_page_t *menu_sub_nw;
 menu_base_t *enter_nw_page;
+menu_text_t *nw_sta_ip;
 menu_switch_t *nw_ap_switch;
 menu_qrcode_t *nw_ap_qrcode;
 

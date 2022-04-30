@@ -62,6 +62,7 @@ static menu_text_t *create_menu_text(lv_obj_t *parent, const char *title, const 
     menu_text_t *text = lv_mem_alloc(sizeof(menu_text_t));
 
     text->menu_cont = lv_menu_cont_create(parent);
+    lv_obj_set_style_pad_hor(text->menu_cont, MAIN_SCREEN_MENU_PAGE_CONT_PAD_HOR, 0);
 
     text->title = lv_label_create(text->menu_cont);
     lv_label_set_long_mode(text->title, LV_LABEL_LONG_SCROLL_CIRCULAR);
@@ -80,6 +81,22 @@ static menu_text_t *create_menu_text(lv_obj_t *parent, const char *title, const 
     return text;
 }
 
+static void slider_event_cb(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    menu_slider_t *obj = lv_event_get_user_data(e);
+    lv_label_set_text_fmt(obj->val, "%d", code);
+
+    if (code == LV_EVENT_VALUE_CHANGED)
+    {
+        lv_label_set_text_fmt(obj->slider_val, "%d", lv_slider_get_value(obj->slider));
+        lv_obj_clear_flag(obj->slider_val, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    if (code == LV_EVENT_REFR_EXT_DRAW_SIZE)
+        lv_obj_add_flag(obj->slider_val, LV_OBJ_FLAG_HIDDEN);
+}
+
 static menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, const char *title, uint32_t min, uint32_t max, uint32_t val)
 {
     menu_slider_t *obj = lv_mem_alloc(sizeof(menu_slider_t));
@@ -87,11 +104,11 @@ static menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, con
     obj->base = create_menu_base(parent, icon, title);
     lv_obj_set_style_pad_hor(obj->base->menu_cont, MAIN_SCREEN_MENU_PAGE_CONT_PAD_HOR, 0);
 
-    obj->slider_val = lv_label_create(obj->base->menu_cont);
-    lv_label_set_long_mode(obj->slider_val, LV_LABEL_LONG_SCROLL_CIRCULAR);
-    lv_obj_set_flex_grow(obj->slider_val, 0);
+    obj->val = lv_label_create(obj->base->menu_cont);
+    lv_label_set_long_mode(obj->val, LV_LABEL_LONG_SCROLL_CIRCULAR);
+    lv_obj_set_flex_grow(obj->val, 0);
 
-    lv_label_set_text_fmt(obj->slider_val, "%d", val);
+    lv_label_set_text_fmt(obj->val, "%d", val);
 
     obj->slider = lv_slider_create(obj->base->menu_cont);
     lv_obj_set_style_radius(obj->slider, LV_RADIUS_CIRCLE, LV_PART_KNOB);
@@ -105,6 +122,14 @@ static menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, con
     lv_slider_set_range(obj->slider, min, max);
     lv_slider_set_value(obj->slider, val, LV_ANIM_OFF);
 
+    obj->slider_val = lv_label_create(obj->slider);
+    lv_obj_add_flag(obj->slider_val, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_center(obj->slider_val);
+    lv_obj_set_style_text_color(obj->slider_val, obj_bg_color, 0);
+    lv_label_set_text_fmt(obj->slider_val, "%d", val);
+
+    lv_obj_add_event_cb(obj->slider, slider_event_cb, LV_EVENT_ALL, obj);
+
     return obj;
 }
 
@@ -113,12 +138,11 @@ static menu_switch_t *create_menu_switch(lv_obj_t *parent, const char *icon, con
     menu_switch_t *obj = lv_mem_alloc(sizeof(menu_switch_t));
 
     obj->base = create_menu_base(parent, icon, title);
+    lv_obj_set_style_pad_hor(obj->base->menu_cont, MAIN_SCREEN_MENU_PAGE_CONT_PAD_HOR, 0);
 
     obj->sw = lv_switch_create(obj->base->menu_cont);
 
     lv_obj_add_state(obj->sw, check ? LV_STATE_CHECKED : 0);
-
-    lv_obj_set_style_pad_hor(obj->base->menu_cont, MAIN_SCREEN_MENU_PAGE_CONT_PAD_HOR, 0);
 
     return obj;
 }
@@ -128,6 +152,7 @@ static menu_qrcode_t *create_menu_qrcode(lv_obj_t *parent, const char *icon, con
     menu_qrcode_t *obj = lv_mem_alloc(sizeof(menu_qrcode_t));
 
     obj->base = create_menu_base(parent, icon, title);
+    lv_obj_set_style_pad_hor(obj->base->menu_cont, MAIN_SCREEN_MENU_PAGE_CONT_PAD_HOR, 0);
 
     obj->qr = lv_qrcode_create(obj->base->menu_cont, MAIN_SCREEN_MENU_QR_CODE_SIZE, obj_bg_color, white_color);
 
@@ -138,8 +163,6 @@ static menu_qrcode_t *create_menu_qrcode(lv_obj_t *parent, const char *icon, con
 
     lv_obj_set_style_border_color(obj->qr, white_color, 0);
     lv_obj_set_style_border_width(obj->qr, MAIN_SCREEN_MENU_QR_CODE_BORDER_WIDTH, 0);
-
-    lv_obj_set_style_pad_hor(obj->base->menu_cont, MAIN_SCREEN_MENU_PAGE_CONT_PAD_HOR, 0);
 
     return obj;
 }
@@ -206,7 +229,8 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
 
     /* create subpage network */
     menu_sub_nw = create_menu_subpage(main_screen_menu, "Network Settings");
-    nw_ap_switch = create_menu_switch(menu_sub_nw->section, LV_SYMBOL_WIFI, "Access Point", false);
+    nw_sta_ip = create_menu_text(menu_sub_nw->section, "Station IP", NULL);
+    nw_ap_switch = create_menu_switch(menu_sub_nw->section, NULL, "Access Point", false);
     nw_ap_qrcode = create_menu_qrcode(menu_sub_nw->section, NULL, "AP QRCode");
 
     /* create subpage tof */
