@@ -105,8 +105,8 @@ static void set_lv_drv()
 
 static void set_lv_indev_group()
 {
-    lv_group_add_obj(indev_group, enter_nw_page->menu_cont);
     lv_group_add_obj(indev_group, enter_tof_page->menu_cont);
+    lv_group_add_obj(indev_group, enter_nw_page->menu_cont);
     lv_group_add_obj(indev_group, enter_buzzer_page->menu_cont);
     lv_group_add_obj(indev_group, enter_bms_page->menu_cont);
 }

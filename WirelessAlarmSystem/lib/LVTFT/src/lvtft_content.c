@@ -26,13 +26,14 @@ menu_qrcode_t *nw_ap_qrcode;
 /* tof subpage */
 menu_page_t *menu_sub_tof;
 menu_base_t *enter_tof_page;
+menu_switch_t *tof_mute_switch;
 menu_slider_t *tof_limit_slider1;
 menu_slider_t *tof_limit_slider2;
 
 /* buzzer subpage */
 menu_page_t *menu_sub_buzzer;
 menu_base_t *enter_buzzer_page;
-menu_switch_t *buzzer_mute_switch;
+menu_slider_t *buzzer_ms_slider;
 menu_slider_t *buzzer_duty_slider;
 menu_slider_t *buzzer_freq_slider;
 
@@ -127,7 +128,6 @@ static void slider_event_cb(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     menu_slider_t *obj = lv_event_get_user_data(e);
-    lv_label_set_text_fmt(obj->val, "%d", code);
 
     if (code == LV_EVENT_VALUE_CHANGED)
     {
@@ -149,8 +149,6 @@ static menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, con
     obj->val = lv_label_create(obj->base->menu_cont);
     lv_label_set_long_mode(obj->val, LV_LABEL_LONG_SCROLL_CIRCULAR);
     lv_obj_set_flex_grow(obj->val, 0);
-
-    lv_label_set_text_fmt(obj->val, "%d", val);
 
     obj->slider = lv_slider_create(obj->base->menu_cont);
     lv_obj_set_style_radius(obj->slider, LV_RADIUS_CIRCLE, LV_PART_KNOB);
@@ -248,8 +246,8 @@ static void root_back_btn_handler(lv_event_t *event)
 
             /* ! set sidebar header icon after sidebar page is set ! */
             // lv_img_set_src(lv_obj_get_child(lv_menu_get_sidebar_header_back_btn(menu), 0), LV_SYMBOL_REFRESH);
-            menu_load_page(enter_nw_page);
         }
+        menu_load_page(enter_nw_page);
     }
 }
 
@@ -277,21 +275,22 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
 
     /* create subpage tof */
     menu_sub_tof = create_menu_subpage(main_screen_menu, "Alarm Threshold");
-    tof_limit_slider1 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 1", 0, 20000, 1000);
-    tof_limit_slider2 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 2", 0, 20000, 2333);
+    tof_mute_switch = create_menu_switch(menu_sub_tof->section, LV_SYMBOL_WARNING, "Pause Alert", false);
+    tof_limit_slider1 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 1 (mm)", 0, 20000, 1000);
+    tof_limit_slider2 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 2 (mm)", 0, 20000, 2333);
 
     /* create subpage buzzer */
     menu_sub_buzzer = create_menu_subpage(main_screen_menu, "PWM of Buzzer & LED");
-    buzzer_mute_switch = create_menu_switch(menu_sub_buzzer->section, LV_SYMBOL_AUDIO, "mute", false);
-    buzzer_duty_slider = create_menu_slider(menu_sub_buzzer->section, NULL, "duty cycle", 0, 255, 30);
-    buzzer_freq_slider = create_menu_slider(menu_sub_buzzer->section, NULL, "frequency", 0, 100, 10);
+    buzzer_duty_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_MUTE, "duty cycle", 0, 255, 0);
+    buzzer_freq_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_AUDIO, "frequency", 0, 100, 10);
+    buzzer_ms_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_LOOP, "close delay (ms)", 0, 10, 3);
 
     /* create subpage bms */
     menu_sub_bms = create_menu_subpage(main_screen_menu, "Battery Information");
-    bms_current = create_menu_text(menu_sub_bms->section, "Current (mA)", "1000");
-    bms_voltage = create_menu_text(menu_sub_bms->section, "Voltage (mV)", "12.3");
+    bms_current = create_menu_text(menu_sub_bms->section, "Current (mA)", NULL);
+    bms_voltage = create_menu_text(menu_sub_bms->section, "Voltage (mV)", NULL);
     bms_voltage_oc = create_menu_text(menu_sub_bms->section, "VoltageOC (mV)", NULL);
-    bms_state = create_menu_text(menu_sub_bms->section, "State Code", "92");
+    bms_state = create_menu_text(menu_sub_bms->section, "State Code", NULL);
 
     /* create root page */
     menu_root = lv_mem_alloc(sizeof(menu_page_t));
@@ -300,10 +299,10 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
 
     menu_root->section = lv_menu_section_create(menu_root->page);
 
-    enter_nw_page = create_menu_base(menu_root->section, LV_SYMBOL_SETTINGS, "Service");
-    enter_tof_page = create_menu_base(menu_root->section, LV_SYMBOL_SETTINGS, "Measure");
-    enter_buzzer_page = create_menu_base(menu_root->section, LV_SYMBOL_SETTINGS, "Alarm");
-    enter_bms_page = create_menu_base(menu_root->section, LV_SYMBOL_SETTINGS, "Battery");
+    enter_tof_page = create_menu_base(menu_root->section, LV_SYMBOL_USB, "Measure");
+    enter_nw_page = create_menu_base(menu_root->section, LV_SYMBOL_HOME, "Service");
+    enter_buzzer_page = create_menu_base(menu_root->section, LV_SYMBOL_BELL, "Alarm");
+    enter_bms_page = create_menu_base(menu_root->section, LV_SYMBOL_LIST, "Battery");
 
     /* set the load page event */
     lv_menu_set_load_page_event(main_screen_menu, enter_nw_page->menu_cont, menu_sub_nw->page);
@@ -315,14 +314,14 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
     lv_menu_set_sidebar_page(main_screen_menu, menu_root->page);
 
     /* ! set sidebar header icon after sidebar page is set ! */
-    // lv_img_set_src(lv_obj_get_child(lv_menu_get_sidebar_header_back_btn(main_screen_menu), 0), LV_SYMBOL_REFRESH);
+    lv_img_set_src(lv_obj_get_child(lv_menu_get_sidebar_header_back_btn(main_screen_menu), 0), LV_SYMBOL_POWER);
     menu_load_page(enter_nw_page);
 }
 
 static void anim_timer_cb(lv_timer_t *timer)
 {
-    lv_obj_add_flag(charge_bg, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(charge_animimg, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(charge_bg, LV_OBJ_FLAG_HIDDEN);
     lv_timer_pause(charge_anim_timer);
 }
 
@@ -351,9 +350,8 @@ static void set_lv_charge_anim()
     lv_animimg_set_duration(charge_animimg, 1000);
     lv_animimg_set_repeat_count(charge_animimg, 0);
 
-    charge_anim_timer = lv_timer_create(anim_timer_cb, 500, NULL);
+    charge_anim_timer = lv_timer_create(anim_timer_cb, 700, NULL);
     lv_timer_pause(charge_anim_timer);
-    lv_timer_reset(charge_anim_timer);
 }
 
 /*

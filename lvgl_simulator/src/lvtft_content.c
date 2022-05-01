@@ -279,8 +279,8 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
 
 static void anim_timer_cb(lv_timer_t *timer)
 {
-    lv_obj_add_flag(charge_bg, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(charge_animimg, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(charge_bg, LV_OBJ_FLAG_HIDDEN);
     lv_timer_pause(charge_anim_timer);
 }
 

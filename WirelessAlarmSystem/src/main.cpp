@@ -20,8 +20,12 @@ shinelight buzzer = shinelight(0, 13, 0);
 
 void update_ui()
 {
+    // lv_obj_t *cur_page = lv_menu_get_cur_main_page(main_screen_menu);
     lv_label_set_text(top_bar->wifi_txt, WiFi.SSID().c_str());
     lv_label_set_text_fmt(top_bar->level_txt, "%d%%", bms.percent);
+
+    lv_label_set_text(nw_sta_ip->content, WiFi.localIP().toString().c_str());
+    lv_label_set_text(nw_ap->content, WiFi.softAPSSID().c_str());
 
     if (bms.percent >= 80)
         lv_label_set_text(top_bar->level_ico, LV_SYMBOL_BATTERY_FULL);
@@ -41,8 +45,13 @@ void update_ui()
     else
         lv_obj_add_flag(top_bar->lightning_ico, LV_OBJ_FLAG_HIDDEN);
 
-    // lv_label_set_text_fmt(tof_label, "当前: %d mm %d mm", skp1.distance, skp2.distance);
-    // lv_label_set_text_fmt(bt_label, "%d mA %d mV %d mV %d", bms.current, bms.voltage, bms.voltageOc, bms.State);
+    lv_label_set_text_fmt(tof_limit_slider1->val, "%d", skp1.distance);
+    lv_label_set_text_fmt(tof_limit_slider2->val, "%d", skp2.distance);
+
+    lv_label_set_text_fmt(bms_current->content, "%d", bms.current);
+    lv_label_set_text_fmt(bms_voltage->content, "%d", bms.voltage);
+    lv_label_set_text_fmt(bms_voltage_oc->content, "%d", bms.voltageOc);
+    lv_label_set_text_fmt(bms_state->content, "%d", bms.State);
 
     align_lv_top_status_bar();
     align_lv_bottom_status_bar();

@@ -72,13 +72,14 @@ extern "C"
     /* tof subpage */
     extern menu_page_t *menu_sub_tof;
     extern menu_base_t *enter_tof_page;
+    extern menu_switch_t *tof_mute_switch;
     extern menu_slider_t *tof_limit_slider1;
     extern menu_slider_t *tof_limit_slider2;
 
     /* buzzer subpage */
     extern menu_page_t *menu_sub_buzzer;
     extern menu_base_t *enter_buzzer_page;
-    extern menu_switch_t *buzzer_mute_switch;
+    extern menu_slider_t *buzzer_ms_slider;
     extern menu_slider_t *buzzer_duty_slider;
     extern menu_slider_t *buzzer_freq_slider;
 
@@ -91,7 +92,7 @@ extern "C"
     extern menu_text_t *bms_state;
 
     void set_lv_main_screen();
-    void show_lv_charge_screen();
+    void show_lv_charge_anim();
     void menu_load_page(menu_base_t *obj);
 
 #ifdef __cplusplus
