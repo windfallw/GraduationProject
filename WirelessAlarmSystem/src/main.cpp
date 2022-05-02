@@ -66,7 +66,7 @@ void Task1TOF(void *pvParameters)
 
     for (;;)
     {
-        if (skp1.handler(cg.alarm.tof1) || skp2.handler(cg.alarm.tof2))
+        if (skp1.handler(sysconfig.alarm.tof1) || skp2.handler(sysconfig.alarm.tof2))
             buzzer.open();
 
         vTaskDelay(1); // vTaskDelay() = delay()
@@ -93,12 +93,12 @@ void Task2Scan(void *pvParameters)
                         String output;
                         StaticJsonDocument<256> doc;
                         doc["log"] = true;
-                        doc["mac"] = cg.mqtt.macddr;
+                        doc["mac"] = sysconfig.mqtt.macddr;
                         doc["tid"] = tid;
                         doc["distance"] = alog[tid].distance;
                         doc["limit"] = alog[tid].limit;
                         serializeJson(doc, output);
-                        mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, output.c_str());
+                        mqttClient.publish(sysconfig.mqtt.publish.c_str(), 0, false, output.c_str());
                         alog[tid].onpub = false;
                     }
                 }
@@ -175,27 +175,27 @@ void loop()
     ArduinoOTA.handle();
     dnsServer.processNextRequest();
 
-    if (CONN_SIGN.WEB)
+    if (conn_sign.web)
     {
         // only exec once.
-        CONN_SIGN.WEB = false;
-        if (!conn_wifi(CONN_SIGN.ssid, CONN_SIGN.pwd))
+        conn_sign.web = false;
+        if (!conn_wifi(conn_sign.ssid, conn_sign.pwd))
         {
             // connect fail rollback to known wifi.
             conn_wifi(false);
         }
     }
 
-    if (CONN_SIGN.WiFi)
+    if (conn_sign.wifi)
     {
-        CONN_SIGN.WiFi = false;
+        conn_sign.wifi = false;
         if (!WiFi.isConnected())
             conn_wifi(true);
     }
 
-    if (CONN_SIGN.MQTT && WiFi.isConnected())
+    if (conn_sign.mqtt && WiFi.isConnected())
     {
-        CONN_SIGN.MQTT = false;
+        conn_sign.mqtt = false;
         mqttClient.connect();
     }
 }

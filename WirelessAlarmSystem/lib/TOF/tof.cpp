@@ -1,6 +1,7 @@
 #include "tof.h"
+#include "file.h"
 
-struct alarmlog_t alog[3];
+alarm_log_t alog[TOFDEVICENUMBER + 1];
 
 hw_timer_t *shinelight::timer = NULL;
 uint8_t shinelight::IsOn = false;
@@ -20,7 +21,7 @@ shinelight::shinelight(uint8_t timerNum, uint8_t pin, uint8_t channel, uint8_t r
     timer = timerBegin(timerNum, 80, true);
     timerAttachInterrupt(timer, &onTimerOut, true);
 
-    ledcSetup(channel, cg.alarm.freq, resolution);
+    ledcSetup(channel, sysconfig.alarm.freq, resolution);
     ledcAttachPin(pin, channel);
     ledcWrite(channel, 0);
 }
@@ -37,12 +38,12 @@ void shinelight::open()
 
     else
     {
-        if (!cg.alarm.ms)
+        if (!sysconfig.alarm.ms)
             return;
 
-        ledcWrite(channel, cg.alarm.dutyCycle);
+        ledcWrite(channel, sysconfig.alarm.dutyCycle);
         IsOn = true;
-        timerAlarmWrite(timer, cg.alarm.ms * 1000, false); // value in microseconds
+        timerAlarmWrite(timer, sysconfig.alarm.ms * 1000, false); // value in microseconds
         timerWrite(timer, 0);
         timerAlarmEnable(timer);
     }
@@ -59,8 +60,8 @@ void shinelight::writeCycle(uint32_t cycle)
 {
     if (ledcRead(channel) != cycle)
     {
-        cg.alarm.dutyCycle = cycle;
-        ledcWrite(channel, cg.alarm.dutyCycle);
+        sysconfig.alarm.dutyCycle = cycle;
+        ledcWrite(channel, sysconfig.alarm.dutyCycle);
     }
 }
 
@@ -68,8 +69,8 @@ void shinelight::writeFreq(uint32_t fq)
 {
     if (ledcReadFreq(channel) != fq)
     {
-        cg.alarm.freq = fq;
-        ledcSetup(channel, cg.alarm.freq, resolution);
+        sysconfig.alarm.freq = fq;
+        ledcSetup(channel, sysconfig.alarm.freq, resolution);
     }
 }
 
@@ -91,7 +92,7 @@ void shinelight::fade_test()
 
 // below are ToF LiDAR Part
 
-constexpr const uint8_t
+static const uint8_t
     crcTable[] = {0, 49, 98, 83, 196, 245, 166, 151, 185, 136, 219, 234, 125, 76, 31, 46, 67, 114, 33, 16, 135, 182, 229, 212,
                   250, 203, 152, 169, 62, 15, 92, 109, 134, 183, 228, 213, 66, 115, 32, 17, 63, 14, 93, 108, 251, 202, 153, 168,
                   197, 244, 167, 150, 1, 48, 99, 82, 124, 77, 30, 47, 184, 137, 218, 235, 61, 12, 95, 110, 249, 200, 155, 170,
@@ -104,16 +105,18 @@ constexpr const uint8_t
                   189, 140, 223, 238, 121, 72, 27, 42, 193, 240, 163, 146, 5, 52, 103, 86, 120, 73, 26, 43, 188, 141, 222, 239,
                   130, 179, 224, 209, 70, 119, 36, 21, 59, 10, 89, 104, 255, 206, 157, 172};
 
-constexpr const uint8_t startMeasure[] = {0x55, 0x05, 0x00, 0x00, 0x00, 0x00, 0xCC, 0xAA};
-constexpr const uint8_t stopMeasure[] = {0x55, 0x06, 0x00, 0x00, 0x00, 0x00, 0x88, 0xAA};
+static const uint8_t startMeasure[] = {0x55, 0x05, 0x00, 0x00, 0x00, 0x00, 0xCC, 0xAA};
+static const uint8_t stopMeasure[] = {0x55, 0x06, 0x00, 0x00, 0x00, 0x00, 0x88, 0xAA};
 
-constexpr const uint8_t singleMode[] = {0x55, 0x0D, 0x00, 0x00, 0x00, 0x01, 0xC3, 0xAA};
-constexpr const uint8_t AutoMode[] = {0x55, 0x0D, 0x00, 0x00, 0x00, 0x00, 0xF2, 0xAA};
-constexpr const uint8_t autoButCloseMode[] = {0x55, 0x0D, 0x00, 0x00, 0x00, 0x02, 0x90, 0xAA};
+static const uint8_t singleMode[] = {0x55, 0x0D, 0x00, 0x00, 0x00, 0x01, 0xC3, 0xAA};
+static const uint8_t AutoMode[] = {0x55, 0x0D, 0x00, 0x00, 0x00, 0x00, 0xF2, 0xAA};
+static const uint8_t autoButCloseMode[] = {0x55, 0x0D, 0x00, 0x00, 0x00, 0x02, 0x90, 0xAA};
 
-constexpr const uint8_t deviceInfo[] = {0x55, 0x01, 0x00, 0x00, 0x00, 0x00, 0xD3, 0xAA};
-constexpr const uint8_t byteOutPut[] = {0x55, 0x04, 0x00, 0x00, 0x00, 0x01, 0x2E, 0xAA};
-constexpr const uint8_t pixhawkOutPut[] = {0x55, 0x04, 0x00, 0x00, 0x00, 0x02, 0x7D, 0xAA};
+static const uint8_t deviceInfo[] = {0x55, 0x01, 0x00, 0x00, 0x00, 0x00, 0xD3, 0xAA};
+static const uint8_t byteOutPut[] = {0x55, 0x04, 0x00, 0x00, 0x00, 0x01, 0x2E, 0xAA};
+static const uint8_t pixhawkOutPut[] = {0x55, 0x04, 0x00, 0x00, 0x00, 0x02, 0x7D, 0xAA};
+
+static uint8_t digest(uint8_t buffer[]);
 
 SKPTOFLIDAR::SKPTOFLIDAR(uint8_t tid, HardwareSerial *u, u_long baudrate, int8_t rx, int8_t tx)
 {
@@ -198,7 +201,7 @@ uint8_t SKPTOFLIDAR::handler(uint32_t limit)
     return false;
 }
 
-uint8_t digest(uint8_t buffer[])
+static uint8_t digest(uint8_t buffer[])
 {
     uint8_t crc = 0x00;
     for (int i = 1; i < 6; i++)

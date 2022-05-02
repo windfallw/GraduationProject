@@ -92,6 +92,7 @@ extern "C"
     extern menu_text_t *bms_state;
 
     void set_lv_main_screen();
+    
     void show_lv_charge_anim();
     void menu_load_page(menu_base_t *obj);
 

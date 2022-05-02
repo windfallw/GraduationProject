@@ -2,17 +2,26 @@
 #define TOFH
 
 #include <Arduino.h>
-#include "file.h"
 
 #define TOFDEVICENUMBER 2
 
-// use npn mosfet  ctrl light & buzzer
+typedef struct
+{
+    bool onpub = false;
+    uint32_t distance = 0;
+    uint32_t limit = 0;
+} alarm_log_t;
+
+extern alarm_log_t alog[TOFDEVICENUMBER + 1];
+
+// use npn mosfet ctrl light & buzzer
 class shinelight
 {
 public:
     static hw_timer_t *timer;
     static uint8_t IsOn;
     static uint8_t ReqOff;
+
     static void IRAM_ATTR onTimerOut();
 
     uint8_t pin;
@@ -50,16 +59,5 @@ public:
 
     void print_buffs();
 };
-
-struct alarmlog_t
-{
-    bool onpub = false;
-    uint32_t distance = 0;
-    uint32_t limit = 0;
-};
-
-extern struct alarmlog_t alog[TOFDEVICENUMBER + 1];
-
-uint8_t digest(uint8_t buffer[]);
 
 #endif

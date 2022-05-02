@@ -5,19 +5,19 @@
 #include "LITTLEFS.h"
 #include "ArduinoJson.h"
 
-struct sta_config
+typedef struct
 {
     String ssid;
     String pwd;
-};
+} sta_config;
 
-struct ap_config
+typedef struct
 {
     String ssid;
     String pwd;
-};
+} ap_config;
 
-struct alarm_config
+typedef struct
 {
     uint32_t tofMax; // hard coding maximum limit 20m
     uint32_t tof1;
@@ -26,9 +26,9 @@ struct alarm_config
     uint32_t ms;
     uint32_t freq;
     uint32_t dutyCycle;
-};
+} alarm_config;
 
-struct mqtt_config
+typedef struct
 {
     String macddr; // hard coding
     String user;
@@ -37,41 +37,42 @@ struct mqtt_config
     String publish;
     String server;
     uint16_t port;
-};
+} mqtt_config;
 
-struct cg_t
+typedef struct
 {
-    struct sta_config sta[3];
-    struct ap_config ap;
-    struct alarm_config alarm;
-    struct mqtt_config mqtt;
+    sta_config sta[3];
+    ap_config ap;
+    alarm_config alarm;
+    mqtt_config mqtt;
     String stream;
     char *convert(String str)
     {
         return const_cast<char *>(str.c_str());
     }
-};
+} config_sys_t;
 
-struct conn_t
+typedef struct
 {
     String ssid;
     String pwd;
-    bool WEB = false;                        // for web
-    bool WiFi = false;                       // wifi check flag
-    bool MQTT = false;                       // mqtt check flag
+    bool web = false;                        // for web
+    bool wifi = false;                       // wifi check flag
+    bool mqtt = false;                       // mqtt check flag
     const uint64_t checkMicroSec = 10000000; // use timer to check wifi status per 10s
-};
+} conn_sign_t;
 
-extern struct cg_t cg;
-extern struct conn_t CONN_SIGN;
+extern config_sys_t sysconfig;
 
-extern void set_littlefs();
-extern void listDir(const char *dirname, uint8_t levels);
-extern void readFile(const char *path);
-extern void writeFile(const char *path);
+extern conn_sign_t conn_sign;
 
-extern void readConfigFile();
-extern void writeConfigFile();
-extern void resetConfigFile();
+void set_littlefs();
+void listDir(const char *dirname, uint8_t levels);
+void readFile(const char *path);
+void writeFile(const char *path);
+
+void readConfigFile();
+void writeConfigFile();
+void resetConfigFile();
 
 #endif
