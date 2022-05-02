@@ -1,4 +1,7 @@
 #include "netsrv.h"
+#include "file.h"
+#include "LITTLEFS.h"
+#include "SPIFFSEditor.h"
 
 static constexpr const char *TEXT_MIMETYPE = "text/plain";
 

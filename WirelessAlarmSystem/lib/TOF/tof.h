@@ -45,9 +45,11 @@ class SKPTOFLIDAR
 {
 public:
     uint8_t tid;
-    HardwareSerial *uart;
+    uint8_t pause = false; // pause alert
     uint8_t buffs[8] = {};
     uint32_t distance = 0;
+
+    HardwareSerial *uart;
 
     SKPTOFLIDAR(uint8_t tid, HardwareSerial *u, u_long baudrate, int8_t rx, int8_t tx);
     ~SKPTOFLIDAR();

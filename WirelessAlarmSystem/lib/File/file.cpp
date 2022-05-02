@@ -1,4 +1,6 @@
 #include "file.h"
+#include "LITTLEFS.h"
+#include "ArduinoJson.h"
 
 #define FORMAT_LITTLEFS_IF_FAILED true
 #define CONFIG_LITTLEFS_BASE_PATH "/littlefs"

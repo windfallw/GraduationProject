@@ -184,6 +184,10 @@ uint8_t SKPTOFLIDAR::handler(uint32_t limit)
         // didn't receive new data
         return false;
 
+    if (pause)
+        // pause alert
+        return false;
+
     if (distance < limit)
     {
         if (tid > TOFDEVICENUMBER)

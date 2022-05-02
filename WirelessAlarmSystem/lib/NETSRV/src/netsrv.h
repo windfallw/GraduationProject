@@ -7,12 +7,9 @@
 #include <ArduinoOTA.h>
 #include <Update.h>
 
-#include "file.h"
-
 #include "AsyncJson.h"
 #include "AsyncTCP.h"
 #include "ESPAsyncWebServer.h"
-#include "SPIFFSEditor.h"
 
 #include "elegantWebpage.h"
 
@@ -195,11 +192,11 @@ extern DNSServer dnsServer;
 extern AsyncWebServer server;
 extern AsyncMqttClient mqttClient;
 
-extern bool conn_wifi(bool scan = false);
-extern bool conn_wifi(String ssid, String pwd);
+bool conn_wifi(bool scan = false);
+bool conn_wifi(String ssid, String pwd);
 
-extern void set_netsrv();
-extern void set_mqtt();
-extern void set_checkTimer(uint8_t timerNum);
+void set_netsrv();
+void set_mqtt();
+void set_checkTimer(uint8_t timerNum);
 
 #endif

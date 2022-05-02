@@ -2,8 +2,6 @@
 #define FILEH
 
 #include <Arduino.h>
-#include "LITTLEFS.h"
-#include "ArduinoJson.h"
 
 typedef struct
 {
