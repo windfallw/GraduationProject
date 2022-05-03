@@ -101,8 +101,8 @@ void set_lv_drv()
 
     /* Initialize the input device group */
     indev_group = lv_group_create();
-    lv_indev_set_group(indev, indev_group);
     lv_group_set_default(indev_group);
+    lv_indev_set_group(indev, indev_group);
 }
 
 void set_indev_group_obj(lv_obj_t *obj)

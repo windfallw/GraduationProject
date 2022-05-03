@@ -12,7 +12,7 @@
 
 const char *config_file_path = "/config.json";
 
-static config_sys_t config_sys_init()
+static sys_cg_t config_sys_init()
 {
     uint8_t mac[6];
     char *apssid = (char *)malloc(10); // use free() to release
@@ -22,18 +22,18 @@ static config_sys_t config_sys_init()
     sprintf(apssid, "ESP%02X%02X", mac[4], mac[5]);
     sprintf(macAddr, "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
-    config_sys_t config = {
+    sys_cg_t config = {
         {{"example1", "password1"},
          {"example2", "password2"},
          {"example3", "password3"}},
         {apssid, "12345678"},
-        {20000, 1000, 1000, 10000, 500, 10, 30},
+        {20000, 0, 1000, 1000, 10000, 0, 500, 10, 30},
         {macAddr, "public", "public", "server-publish", "client-submit", "example.com", 1883}};
 
     return config;
 }
 
-config_sys_t sysconfig = config_sys_init();
+sys_cg_t syscg = config_sys_init();
 conn_sign_t conn_sign;
 
 void set_littlefs()
@@ -191,8 +191,8 @@ void readConfigFile()
     uint8_t index = 0;
     for (JsonObject wifi_sta_item : doc["wifi"]["sta"].as<JsonArray>())
     {
-        sysconfig.sta[index].ssid = const_cast<char *>((const char *)wifi_sta_item["ssid"]);
-        sysconfig.sta[index].pwd = const_cast<char *>((const char *)wifi_sta_item["pwd"]);
+        syscg.sta[index].ssid = const_cast<char *>((const char *)wifi_sta_item["ssid"]);
+        syscg.sta[index].pwd = const_cast<char *>((const char *)wifi_sta_item["pwd"]);
         index++;
         if (index >= 3)
             break;
@@ -201,24 +201,28 @@ void readConfigFile()
     /* may be useful https://github.com/bblanchon/ArduinoJson/issues/71#issuecomment-99364015
     const char *gatewayString = root["gateway"];
     char *octetoAux = const_cast<char *>(gatewayString);*/
-    sysconfig.ap.ssid = const_cast<char *>((const char *)doc["wifi"]["ap"]["ssid"]);
-    sysconfig.ap.pwd = const_cast<char *>((const char *)doc["wifi"]["ap"]["pwd"]);
+    syscg.ap.ssid = const_cast<char *>((const char *)doc["wifi"]["ap"]["ssid"]);
+    syscg.ap.pwd = const_cast<char *>((const char *)doc["wifi"]["ap"]["pwd"]);
 
-    // sysconfig.alarm.tofMax = alarm["tofMax"];
-    sysconfig.alarm.tof1 = alarm["tof1"];
-    sysconfig.alarm.tof2 = alarm["tof2"];
-    // sysconfig.alarm.msMax = alarm["msMax"];
-    sysconfig.alarm.ms = alarm["ms"];
-    sysconfig.alarm.freq = alarm["freq"];
-    sysconfig.alarm.dutyCycle = alarm["dutyCycle"];
+    // syscg.alarm.tofMax = alarm["tofMax"];
+    // syscg.alarm.tofMin = alarm["tofMin"];
+    syscg.alarm.tof1 = alarm["tof1"];
+    syscg.alarm.tof2 = alarm["tof2"];
 
-    // sysconfig.mqtt.macddr = const_cast<char *>((const char *)mqtt["macddr"]);
-    sysconfig.mqtt.user = const_cast<char *>((const char *)mqtt["user"]);
-    sysconfig.mqtt.pwd = const_cast<char *>((const char *)mqtt["pwd"]);
-    sysconfig.mqtt.subscribe = const_cast<char *>((const char *)mqtt["subscribe"]);
-    sysconfig.mqtt.publish = const_cast<char *>((const char *)mqtt["publish"]);
-    sysconfig.mqtt.server = const_cast<char *>((const char *)mqtt["server"]);
-    sysconfig.mqtt.port = mqtt["port"];
+    // syscg.alarm.msMax = alarm["msMax"];
+    // syscg.alarm.msMin = alarm["msMin"];
+    syscg.alarm.ms = alarm["ms"];
+
+    syscg.alarm.freq = alarm["freq"];
+    syscg.alarm.dutyCycle = alarm["dutyCycle"];
+
+    // syscg.mqtt.macddr = const_cast<char *>((const char *)mqtt["macddr"]);
+    syscg.mqtt.user = const_cast<char *>((const char *)mqtt["user"]);
+    syscg.mqtt.pwd = const_cast<char *>((const char *)mqtt["pwd"]);
+    syscg.mqtt.subscribe = const_cast<char *>((const char *)mqtt["subscribe"]);
+    syscg.mqtt.publish = const_cast<char *>((const char *)mqtt["publish"]);
+    syscg.mqtt.server = const_cast<char *>((const char *)mqtt["server"]);
+    syscg.mqtt.port = mqtt["port"];
 
     // serializeJsonPretty(doc, Serial);
     // Serial.println();
@@ -248,31 +252,35 @@ void writeConfigFile()
     for (int i = 0; i < 3; i++)
     {
         JsonObject wifi_sta_obj = wifi_sta.createNestedObject();
-        wifi_sta_obj["ssid"] = sysconfig.sta[i].ssid;
-        wifi_sta_obj["pwd"] = sysconfig.sta[i].pwd;
+        wifi_sta_obj["ssid"] = syscg.sta[i].ssid;
+        wifi_sta_obj["pwd"] = syscg.sta[i].pwd;
     }
 
-    wifi_ap["ssid"] = sysconfig.ap.ssid;
-    wifi_ap["pwd"] = sysconfig.ap.pwd;
+    wifi_ap["ssid"] = syscg.ap.ssid;
+    wifi_ap["pwd"] = syscg.ap.pwd;
 
-    alarm["tofMax"] = sysconfig.alarm.tofMax;
-    alarm["tof1"] = sysconfig.alarm.tof1;
-    alarm["tof2"] = sysconfig.alarm.tof2;
-    alarm["msMax"] = sysconfig.alarm.msMax;
-    alarm["ms"] = sysconfig.alarm.ms;
-    alarm["freq"] = sysconfig.alarm.freq;
-    alarm["dutyCycle"] = sysconfig.alarm.dutyCycle;
+    alarm["tofMax"] = syscg.alarm.tofMax;
+    alarm["tofMin"] = syscg.alarm.tofMin;
+    alarm["tof1"] = syscg.alarm.tof1;
+    alarm["tof2"] = syscg.alarm.tof2;
 
-    mqtt["macddr"] = sysconfig.mqtt.macddr;
-    mqtt["user"] = sysconfig.mqtt.user;
-    mqtt["pwd"] = sysconfig.mqtt.pwd;
-    mqtt["subscribe"] = sysconfig.mqtt.subscribe;
-    mqtt["publish"] = sysconfig.mqtt.publish;
-    mqtt["server"] = sysconfig.mqtt.server;
-    mqtt["port"] = sysconfig.mqtt.port;
+    alarm["msMax"] = syscg.alarm.msMax;
+    alarm["msMin"] = syscg.alarm.msMin;
+    alarm["ms"] = syscg.alarm.ms;
 
-    sysconfig.stream.clear();
-    if (!serializeJson(doc, file) || !serializeJson(doc, sysconfig.stream))
+    alarm["freq"] = syscg.alarm.freq;
+    alarm["dutyCycle"] = syscg.alarm.dutyCycle;
+
+    mqtt["macddr"] = syscg.mqtt.macddr;
+    mqtt["user"] = syscg.mqtt.user;
+    mqtt["pwd"] = syscg.mqtt.pwd;
+    mqtt["subscribe"] = syscg.mqtt.subscribe;
+    mqtt["publish"] = syscg.mqtt.publish;
+    mqtt["server"] = syscg.mqtt.server;
+    mqtt["port"] = syscg.mqtt.port;
+
+    syscg.stream.clear();
+    if (!serializeJson(doc, file) || !serializeJson(doc, syscg.stream))
     {
         Serial.println(F("[E] serializeJson Failed"));
         file.close();

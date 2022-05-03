@@ -23,7 +23,7 @@ static void Task1TOF(void *pvParameters)
 
     for (;;)
     {
-        if (skp1.handler(sysconfig.alarm.tof1) || skp2.handler(sysconfig.alarm.tof2))
+        if (skp1.handler(syscg.alarm.tof1) || skp2.handler(syscg.alarm.tof2))
             buzzer.open();
 
         vTaskDelay(1); // vTaskDelay() = delay()
@@ -50,12 +50,12 @@ static void Task2Scan(void *pvParameters)
                         String output;
                         StaticJsonDocument<256> doc;
                         doc["log"] = true;
-                        doc["mac"] = sysconfig.mqtt.macddr;
+                        doc["mac"] = syscg.mqtt.macddr;
                         doc["tid"] = tid;
                         doc["distance"] = alog[tid].distance;
                         doc["limit"] = alog[tid].limit;
                         serializeJson(doc, output);
-                        mqttClient.publish(sysconfig.mqtt.publish.c_str(), 0, false, output.c_str());
+                        mqttClient.publish(syscg.mqtt.publish.c_str(), 0, false, output.c_str());
                         alog[tid].onpub = false;
                     }
                 }
@@ -76,7 +76,7 @@ static void Task3TFT(void *pvParameters)
 
     for (;;)
     {
-        lvtft_handler();
+        lvtft_task_handler();
         vTaskDelay(1);
     }
 }

@@ -21,7 +21,7 @@ shinelight::shinelight(uint8_t timerNum, uint8_t pin, uint8_t channel, uint8_t r
     timer = timerBegin(timerNum, 80, true);
     timerAttachInterrupt(timer, &onTimerOut, true);
 
-    ledcSetup(channel, sysconfig.alarm.freq, resolution);
+    ledcSetup(channel, syscg.alarm.freq, resolution);
     ledcAttachPin(pin, channel);
     ledcWrite(channel, 0);
 }
@@ -38,12 +38,12 @@ void shinelight::open()
 
     else
     {
-        if (!sysconfig.alarm.ms)
+        if (!syscg.alarm.ms)
             return;
 
-        ledcWrite(channel, sysconfig.alarm.dutyCycle);
+        ledcWrite(channel, syscg.alarm.dutyCycle);
         IsOn = true;
-        timerAlarmWrite(timer, sysconfig.alarm.ms * 1000, false); // value in microseconds
+        timerAlarmWrite(timer, syscg.alarm.ms * 1000, false); // value in microseconds
         timerWrite(timer, 0);
         timerAlarmEnable(timer);
     }
@@ -60,8 +60,8 @@ void shinelight::writeCycle(uint32_t cycle)
 {
     if (ledcRead(channel) != cycle)
     {
-        sysconfig.alarm.dutyCycle = cycle;
-        ledcWrite(channel, sysconfig.alarm.dutyCycle);
+        syscg.alarm.dutyCycle = cycle;
+        ledcWrite(channel, syscg.alarm.dutyCycle);
     }
 }
 
@@ -69,8 +69,8 @@ void shinelight::writeFreq(uint32_t fq)
 {
     if (ledcReadFreq(channel) != fq)
     {
-        sysconfig.alarm.freq = fq;
-        ledcSetup(channel, sysconfig.alarm.freq, resolution);
+        syscg.alarm.freq = fq;
+        ledcSetup(channel, syscg.alarm.freq, resolution);
     }
 }
 

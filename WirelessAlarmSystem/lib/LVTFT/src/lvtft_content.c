@@ -100,7 +100,7 @@ static menu_base_t *create_menu_base(lv_obj_t *parent, const char *icon, const c
     return base;
 }
 
-static menu_text_t *create_menu_text(lv_obj_t *parent, const char *title, const char *content)
+menu_text_t *create_menu_text(lv_obj_t *parent, const char *title, const char *content)
 {
     menu_text_t *text = lv_mem_alloc(sizeof(menu_text_t));
 
@@ -124,22 +124,7 @@ static menu_text_t *create_menu_text(lv_obj_t *parent, const char *title, const 
     return text;
 }
 
-static void slider_event_cb(lv_event_t *e)
-{
-    lv_event_code_t code = lv_event_get_code(e);
-    menu_slider_t *obj = lv_event_get_user_data(e);
-
-    if (code == LV_EVENT_VALUE_CHANGED)
-    {
-        lv_label_set_text_fmt(obj->slider_val, "%d", lv_slider_get_value(obj->slider));
-        lv_obj_clear_flag(obj->slider_val, LV_OBJ_FLAG_HIDDEN);
-    }
-
-    if (code == LV_EVENT_REFR_EXT_DRAW_SIZE)
-        lv_obj_add_flag(obj->slider_val, LV_OBJ_FLAG_HIDDEN);
-}
-
-static menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, const char *title, uint32_t min, uint32_t max, uint32_t val)
+menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, const char *title, uint32_t min, uint32_t max, uint32_t val)
 {
     menu_slider_t *obj = lv_mem_alloc(sizeof(menu_slider_t));
 
@@ -168,12 +153,10 @@ static menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, con
     lv_obj_set_style_text_color(obj->slider_val, obj_bg_color, 0);
     lv_label_set_text_fmt(obj->slider_val, "%d", val);
 
-    lv_obj_add_event_cb(obj->slider, slider_event_cb, LV_EVENT_ALL, obj);
-
     return obj;
 }
 
-static menu_switch_t *create_menu_switch(lv_obj_t *parent, const char *icon, const char *title, bool check)
+menu_switch_t *create_menu_switch(lv_obj_t *parent, const char *icon, const char *title, bool check)
 {
     menu_switch_t *obj = lv_mem_alloc(sizeof(menu_switch_t));
 
@@ -187,7 +170,7 @@ static menu_switch_t *create_menu_switch(lv_obj_t *parent, const char *icon, con
     return obj;
 }
 
-static menu_qrcode_t *create_menu_qrcode(lv_obj_t *parent, const char *icon, const char *title)
+menu_qrcode_t *create_menu_qrcode(lv_obj_t *parent, const char *icon, const char *title, const char *data)
 {
     menu_qrcode_t *obj = lv_mem_alloc(sizeof(menu_qrcode_t));
 
@@ -196,9 +179,9 @@ static menu_qrcode_t *create_menu_qrcode(lv_obj_t *parent, const char *icon, con
 
     obj->qr = lv_qrcode_create(obj->base->menu_cont, MAIN_SCREEN_MENU_QR_CODE_SIZE, obj_bg_color, white_color);
 
-    const char *data = "WIFI:T:WPA2;S:ESP2BF8;P:12345678;H:false;";
+    if (data)
+        lv_qrcode_update(obj->qr, data, strlen(data));
 
-    lv_qrcode_update(obj->qr, data, strlen(data));
     lv_obj_center(obj->qr);
 
     lv_obj_set_style_border_color(obj->qr, white_color, 0);
@@ -243,9 +226,7 @@ static void root_back_btn_handler(lv_event_t *event)
             /* show sidebar page */
             lv_menu_set_page(menu, NULL);
             lv_menu_set_sidebar_page(menu, menu_root->page);
-
-            /* ! set sidebar header icon after sidebar page is set ! */
-            // lv_img_set_src(lv_obj_get_child(lv_menu_get_sidebar_header_back_btn(menu), 0), LV_SYMBOL_REFRESH);
+            lv_img_set_src(lv_obj_get_child(lv_menu_get_sidebar_header_back_btn(menu), 0), LV_SYMBOL_LEFT);
         }
         menu_load_page(enter_nw_page);
     }
@@ -267,30 +248,11 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
     lv_menu_set_mode_root_back_btn(main_screen_menu, LV_MENU_ROOT_BACK_BTN_ENABLED);
     lv_obj_add_event_cb(main_screen_menu, root_back_btn_handler, LV_EVENT_CLICKED, main_screen_menu);
 
-    /* create subpage network */
+    /* create subpage */
     menu_sub_nw = create_menu_subpage(main_screen_menu, "Network Settings");
-    nw_sta_ip = create_menu_text(menu_sub_nw->section, "Station IP", NULL);
-    nw_ap = create_menu_text(menu_sub_nw->section, "Access Point", NULL);
-    nw_ap_qrcode = create_menu_qrcode(menu_sub_nw->section, NULL, "AP QRCode");
-
-    /* create subpage tof */
     menu_sub_tof = create_menu_subpage(main_screen_menu, "Alarm Threshold");
-    tof_mute_switch = create_menu_switch(menu_sub_tof->section, LV_SYMBOL_WARNING, "Pause Alert", false);
-    tof_limit_slider1 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 1 (mm)", 0, 20000, 1000);
-    tof_limit_slider2 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 2 (mm)", 0, 20000, 2333);
-
-    /* create subpage buzzer */
     menu_sub_buzzer = create_menu_subpage(main_screen_menu, "PWM of Buzzer & LED");
-    buzzer_duty_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_MUTE, "duty cycle", 0, 255, 0);
-    buzzer_freq_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_AUDIO, "frequency", 0, 100, 10);
-    buzzer_ms_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_LOOP, "close delay (ms)", 0, 10, 3);
-
-    /* create subpage bms */
     menu_sub_bms = create_menu_subpage(main_screen_menu, "Battery Information");
-    bms_current = create_menu_text(menu_sub_bms->section, "Current (mA)", NULL);
-    bms_voltage = create_menu_text(menu_sub_bms->section, "Voltage (mV)", NULL);
-    bms_voltage_oc = create_menu_text(menu_sub_bms->section, "VoltageOC (mV)", NULL);
-    bms_state = create_menu_text(menu_sub_bms->section, "State Code", NULL);
 
     /* create root page */
     menu_root = lv_mem_alloc(sizeof(menu_page_t));
@@ -312,10 +274,7 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
 
     /* set siderbar page */
     lv_menu_set_sidebar_page(main_screen_menu, menu_root->page);
-
-    /* ! set sidebar header icon after sidebar page is set ! */
-    lv_img_set_src(lv_obj_get_child(lv_menu_get_sidebar_header_back_btn(main_screen_menu), 0), LV_SYMBOL_POWER);
-    menu_load_page(enter_nw_page);
+    lv_img_set_src(lv_obj_get_child(lv_menu_get_sidebar_header_back_btn(main_screen_menu), 0), LV_SYMBOL_LEFT);
 }
 
 static void anim_timer_cb(lv_timer_t *timer)
@@ -326,7 +285,7 @@ static void anim_timer_cb(lv_timer_t *timer)
 }
 
 /*
- * @brief set the charge screen
+ * @brief set the charging animation
  * @param parent lv_obj_t *parent object
  */
 static void set_lv_charge_anim(lv_obj_t *parent)
@@ -357,7 +316,7 @@ static void set_lv_charge_anim(lv_obj_t *parent)
 /*
  * @brief set the main screen
  */
-void set_lv_main_screen()
+void set_lv_content_main()
 {
     main_screen = lv_obj_create(NULL);
 
@@ -374,7 +333,7 @@ void set_lv_main_screen()
 }
 
 /*
- * @brief show charging animation and return to main screen
+ * @brief show charging animation
  */
 void show_lv_charge_anim()
 {

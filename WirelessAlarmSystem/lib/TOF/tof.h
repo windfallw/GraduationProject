@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 #define TOFDEVICENUMBER 2
+#define DEFAULT_PAUSE false
 
 typedef struct
 {
@@ -45,7 +46,7 @@ class SKPTOFLIDAR
 {
 public:
     uint8_t tid;
-    uint8_t pause = false; // pause alert
+    uint8_t pause = DEFAULT_PAUSE; // pause alert
     uint8_t buffs[8] = {};
     uint32_t distance = 0;
 

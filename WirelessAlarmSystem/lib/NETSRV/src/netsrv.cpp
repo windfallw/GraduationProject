@@ -87,9 +87,9 @@ bool conn_wifi(bool scan)
     {
         for (int j = 0; j < 3; j++)
         {
-            if (WiFi.SSID(i).equals(sysconfig.sta[j].ssid))
+            if (WiFi.SSID(i).equals(syscg.sta[j].ssid))
             {
-                if (conn_wifi(sysconfig.sta[j].ssid, sysconfig.sta[j].pwd))
+                if (conn_wifi(syscg.sta[j].ssid, syscg.sta[j].pwd))
                     return true;
             }
         }
@@ -116,23 +116,23 @@ bool conn_wifi(String ssid, String pwd)
 
         for (int i = 0; i < 3; i++)
             // if ssid exists in config file
-            if (sysconfig.sta[i].ssid == ssid)
+            if (syscg.sta[i].ssid == ssid)
             {
-                if (sysconfig.sta[i].pwd != pwd)
+                if (syscg.sta[i].pwd != pwd)
                 {
                     // if pwd not the same save else return
-                    sysconfig.sta[i].pwd = pwd;
+                    syscg.sta[i].pwd = pwd;
                     writeConfigFile();
                 }
                 return true;
             }
 
-        sysconfig.sta[2].ssid = sysconfig.sta[1].ssid;
-        sysconfig.sta[2].pwd = sysconfig.sta[1].pwd;
-        sysconfig.sta[1].ssid = sysconfig.sta[0].ssid;
-        sysconfig.sta[1].pwd = sysconfig.sta[0].pwd;
-        sysconfig.sta[0].ssid = ssid;
-        sysconfig.sta[0].pwd = pwd;
+        syscg.sta[2].ssid = syscg.sta[1].ssid;
+        syscg.sta[2].pwd = syscg.sta[1].pwd;
+        syscg.sta[1].ssid = syscg.sta[0].ssid;
+        syscg.sta[1].pwd = syscg.sta[0].pwd;
+        syscg.sta[0].ssid = ssid;
+        syscg.sta[0].pwd = pwd;
         writeConfigFile();
 
         return true;
@@ -146,10 +146,10 @@ void set_netsrv()
     if (conn_wifi(true)) // scan before connect
     {
         Serial.printf("http://%s\n", WiFi.localIP().toString().c_str());
-        Serial.printf("http://%s.local\n", sysconfig.ap.ssid.c_str());
+        Serial.printf("http://%s.local\n", syscg.ap.ssid.c_str());
     }
 
-    set_OTA(sysconfig.convert(sysconfig.ap.ssid));
+    set_OTA(syscg.convert(syscg.ap.ssid));
 
     server.on("/postwifi", HTTP_POST,
               [](AsyncWebServerRequest *request)
@@ -176,8 +176,8 @@ void set_netsrv()
                   if (warnNum >= 0 && warnNum <= 20)
                   {
                       warnNum = warnNum * 1000; // meter to mm
-                      sysconfig.alarm.tof1 = warnNum;
-                      sysconfig.alarm.tof2 = warnNum;
+                      syscg.alarm.tof1 = warnNum;
+                      syscg.alarm.tof2 = warnNum;
                       writeConfigFile();
                       request->send(200, TEXT_MIMETYPE, "Done!");
                   }
@@ -190,7 +190,7 @@ void set_netsrv()
                   int warnSec = request->arg("warnSec").toInt();
                   if (warnSec >= 0 && warnSec <= 5000)
                   {
-                      sysconfig.alarm.ms = warnSec;
+                      syscg.alarm.ms = warnSec;
                       writeConfigFile();
                       request->send(200, TEXT_MIMETYPE, "Done!");
                   }
@@ -277,7 +277,7 @@ void set_netsrv()
     server.on("/sysinfo", HTTP_GET,
               [](AsyncWebServerRequest *request)
               {
-                  return request->send(200, JSON_MIMETYPE, sysconfig.stream);
+                  return request->send(200, JSON_MIMETYPE, syscg.stream);
               });
 
     server.addHandler(new SPIFFSEditor(LITTLEFS, "", ""));
@@ -363,8 +363,8 @@ void set_netsrv()
                 Serial.printf("BodyEnd: %u\n", total);
         });
 
-    WiFi.softAP(sysconfig.ap.ssid.c_str(), sysconfig.ap.pwd.c_str()); // WiFi.softAPdisconnect(true);
-    WiFi.softAPsetHostname(sysconfig.ap.ssid.c_str());
+    WiFi.softAP(syscg.ap.ssid.c_str(), syscg.ap.pwd.c_str()); // WiFi.softAPdisconnect(true);
+    WiFi.softAPsetHostname(syscg.ap.ssid.c_str());
 
     dnsServer.start(53, "*", WiFi.softAPIP());
     server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER); // only when requested from AP
@@ -378,7 +378,7 @@ void set_netsrv()
 void onMqttConnect(bool sessionPresent)
 {
     Serial.printf("Connected to MQTT Session present: %d\n", sessionPresent);
-    mqttClient.subscribe(sysconfig.mqtt.subscribe.c_str(), 0);
+    mqttClient.subscribe(syscg.mqtt.subscribe.c_str(), 0);
     // mqttClient.publish(cg.mqtt.publish.c_str(), 0, false, "{}");
     // dup flag -> duplicate message; retain flag -> tell mqtt broker to save message for future user
 }
@@ -395,10 +395,10 @@ void onMqttSubscribe(uint16_t packetId, uint8_t qos)
     StaticJsonDocument<64> doc;
     // not a log message
     doc["log"] = false;
-    doc["mac"] = sysconfig.mqtt.macddr;
+    doc["mac"] = syscg.mqtt.macddr;
     serializeJson(doc, output);
     // registering device to server mqtt subscriber
-    mqttClient.publish(sysconfig.mqtt.publish.c_str(), 0, false, output.c_str());
+    mqttClient.publish(syscg.mqtt.publish.c_str(), 0, false, output.c_str());
 
     Serial.printf("Subscribe acknowledged packetId: %d qos: %d\n", packetId, qos);
 }
@@ -413,7 +413,7 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
     // Serial.printf("topic: %s qos: %d dup: %d\n", topic, properties.qos, properties.dup);
     // Serial.printf("retain: %d len: %d index: %d total %d\n", properties.retain, len, index, total);
 
-    if (String(topic) == sysconfig.mqtt.subscribe)
+    if (String(topic) == syscg.mqtt.subscribe)
     {
         // Serial.println(payload);
         StaticJsonDocument<256> doc;
@@ -426,20 +426,20 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
         }
 
         String msg;
-        if (doc["mac"] == sysconfig.mqtt.macddr && doc["init"].is<bool>())
+        if (doc["mac"] == syscg.mqtt.macddr && doc["init"].is<bool>())
         {
             if (doc["init"] == false)
             {
                 if (doc["tof1"].is<unsigned int>() && doc["tof2"].is<unsigned int>() && doc["ms"].is<unsigned int>())
                 {
-                    if (doc["tof1"] <= sysconfig.alarm.tofMax)
-                        sysconfig.alarm.tof1 = doc["tof1"];
+                    if (doc["tof1"] <= syscg.alarm.tofMax)
+                        syscg.alarm.tof1 = doc["tof1"];
 
-                    if (doc["tof2"] <= sysconfig.alarm.tofMax)
-                        sysconfig.alarm.tof2 = doc["tof2"];
+                    if (doc["tof2"] <= syscg.alarm.tofMax)
+                        syscg.alarm.tof2 = doc["tof2"];
 
-                    if (doc["ms"] <= sysconfig.alarm.msMax)
-                        sysconfig.alarm.ms = doc["ms"];
+                    if (doc["ms"] <= syscg.alarm.msMax)
+                        syscg.alarm.ms = doc["ms"];
 
                     writeConfigFile();
 
@@ -455,13 +455,13 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
             /* doc["init"] = true
             response to get config request
             ["status"] key is not needed */
-            doc["tof1"] = sysconfig.alarm.tof1;
-            doc["tof2"] = sysconfig.alarm.tof2;
-            doc["ms"] = sysconfig.alarm.ms;
+            doc["tof1"] = syscg.alarm.tof1;
+            doc["tof2"] = syscg.alarm.tof2;
+            doc["ms"] = syscg.alarm.ms;
 
             serializeJson(doc, msg);
             // Serial.println(msg);
-            mqttClient.publish(sysconfig.mqtt.publish.c_str(), 0, false, msg.c_str());
+            mqttClient.publish(syscg.mqtt.publish.c_str(), 0, false, msg.c_str());
         }
     }
 }
@@ -479,8 +479,8 @@ void set_mqtt()
     mqttClient.onUnsubscribe(onMqttUnsubscribe);
     mqttClient.onMessage(onMqttMessage);
     mqttClient.onPublish(onMqttPublish);
-    mqttClient.setServer(sysconfig.mqtt.server.c_str(), sysconfig.mqtt.port);
-    mqttClient.setCredentials(sysconfig.mqtt.user.c_str(), sysconfig.mqtt.pwd.c_str());
+    mqttClient.setServer(syscg.mqtt.server.c_str(), syscg.mqtt.port);
+    mqttClient.setCredentials(syscg.mqtt.user.c_str(), syscg.mqtt.pwd.c_str());
     mqttClient.setKeepAlive(30);
     if (WiFi.isConnected())
         mqttClient.connect();

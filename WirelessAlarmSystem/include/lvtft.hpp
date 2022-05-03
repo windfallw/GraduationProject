@@ -2,6 +2,6 @@
 #define LVTFT_H
 
 void set_lvgl();
-void lvtft_handler();
+void lvtft_task_handler();
 
 #endif

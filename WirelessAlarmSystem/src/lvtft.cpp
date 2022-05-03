@@ -6,12 +6,13 @@
 
 #include "var.hpp"
 
-static void set_lv_indev_group()
+static char *generate_qrcode_wifi_data()
 {
-    set_indev_group_obj(enter_tof_page->menu_cont);
-    set_indev_group_obj(enter_nw_page->menu_cont);
-    set_indev_group_obj(enter_buzzer_page->menu_cont);
-    set_indev_group_obj(enter_bms_page->menu_cont);
+    const char *format = "WIFI:T:WPA2;S:%s;P:%s;H:false;";
+    const size_t size = strlen(format) + strlen(syscg.ap.ssid.c_str()) + strlen(syscg.ap.pwd.c_str());
+    char *data = (char *)malloc(size);
+    sprintf(data, format, syscg.ap.ssid.c_str(), syscg.ap.pwd.c_str());
+    return data;
 }
 
 static void switch_event_cb(lv_event_t *e)
@@ -34,38 +35,84 @@ static void switch_event_cb(lv_event_t *e)
     }
 }
 
+static void slider_event_cb(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    menu_slider_t *obj = (menu_slider_t *)lv_event_get_user_data(e);
+
+    if (code == LV_EVENT_VALUE_CHANGED)
+    {
+        lv_label_set_text_fmt(obj->slider_val, "%d", lv_slider_get_value(obj->slider));
+        lv_obj_clear_flag(obj->slider_val, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    if (code == LV_EVENT_REFR_EXT_DRAW_SIZE)
+        lv_obj_add_flag(obj->slider_val, LV_OBJ_FLAG_HIDDEN);
+}
+
 static void set_lv_event()
 {
     lv_obj_add_event_cb(tof_mute_switch->sw, switch_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(tof_limit_slider1->slider, slider_event_cb, LV_EVENT_ALL, tof_limit_slider1);
+}
+
+static void set_lv_content_sub()
+{
+    /* subpage network content */
+    nw_sta_ip = create_menu_text(menu_sub_nw->section, "Station IP", NULL);
+    nw_ap = create_menu_text(menu_sub_nw->section, "Access Point", syscg.ap.ssid.c_str());
+    nw_ap_qrcode = create_menu_qrcode(menu_sub_nw->section, NULL, "AP QRCode", generate_qrcode_wifi_data());
+
+    /* subpage tof content */
+    tof_mute_switch = create_menu_switch(menu_sub_tof->section, LV_SYMBOL_WARNING, "Pause Alert", DEFAULT_PAUSE);
+    tof_limit_slider1 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 1 (mm)", syscg.alarm.tofMin, syscg.alarm.tofMax, syscg.alarm.tof1);
+    tof_limit_slider2 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 2 (mm)", syscg.alarm.tofMin, syscg.alarm.tofMax, syscg.alarm.tof2);
+
+    /* subpage buzzer content */
+    buzzer_duty_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_MUTE, "duty cycle", 0, 255, syscg.alarm.dutyCycle);
+    buzzer_freq_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_AUDIO, "frequency", 0, 100, syscg.alarm.freq);
+    buzzer_ms_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_LOOP, "close delay (ms)", syscg.alarm.msMin, syscg.alarm.msMax, syscg.alarm.ms);
+
+    /* subpage bms content */
+    bms_current = create_menu_text(menu_sub_bms->section, "Current (mA)", NULL);
+    bms_voltage = create_menu_text(menu_sub_bms->section, "Voltage (mV)", NULL);
+    bms_voltage_oc = create_menu_text(menu_sub_bms->section, "VoltageOC (mV)", NULL);
+    bms_state = create_menu_text(menu_sub_bms->section, "State Code", NULL);
+}
+
+static void set_lv_indev_group()
+{
+    set_indev_group_obj(enter_tof_page->menu_cont);
+    set_indev_group_obj(enter_nw_page->menu_cont);
+    set_indev_group_obj(enter_buzzer_page->menu_cont);
+    set_indev_group_obj(enter_bms_page->menu_cont);
 }
 
 void set_lvgl()
 {
     set_lv_drv();
-
     set_lv_style();
 
     set_lv_top_status_bar();
-
     set_lv_bottom_status_bar();
-
-    set_lv_main_screen();
+    set_lv_content_main();
+    set_lv_content_sub();
 
     set_lv_event();
-
     set_lv_indev_group();
 
+    menu_load_page(enter_nw_page);
     lv_scr_load(main_screen);
 }
 
-void lvtft_handler()
+void lvtft_task_handler()
 {
     // lv_obj_t *cur_page = lv_menu_get_cur_main_page(main_screen_menu);
+
     lv_label_set_text(top_bar->wifi_txt, WiFi.SSID().c_str());
     lv_label_set_text_fmt(top_bar->level_txt, "%d%%", bms.percent);
 
     lv_label_set_text(nw_sta_ip->content, WiFi.localIP().toString().c_str());
-    lv_label_set_text(nw_ap->content, WiFi.softAPSSID().c_str());
 
     if (bms.percent >= 80)
         lv_label_set_text(top_bar->level_ico, LV_SYMBOL_BATTERY_FULL);

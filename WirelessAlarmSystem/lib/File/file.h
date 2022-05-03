@@ -18,10 +18,14 @@ typedef struct
 typedef struct
 {
     uint32_t tofMax; // hard coding maximum limit 20m
+    uint32_t tofMin; // hard coding minimum limit 0m
     uint32_t tof1;
     uint32_t tof2;
+
     uint32_t msMax; // hard coding maximum 10s
+    uint32_t msMin; // hard coding minimum 0s
     uint32_t ms;
+
     uint32_t freq;
     uint32_t dutyCycle;
 } alarm_config;
@@ -48,7 +52,7 @@ typedef struct
     {
         return const_cast<char *>(str.c_str());
     }
-} config_sys_t;
+} sys_cg_t;
 
 typedef struct
 {
@@ -60,7 +64,7 @@ typedef struct
     const uint64_t checkMicroSec = 10000000; // use timer to check wifi status per 10s
 } conn_sign_t;
 
-extern config_sys_t sysconfig;
+extern sys_cg_t syscg;
 
 extern conn_sign_t conn_sign;
 
