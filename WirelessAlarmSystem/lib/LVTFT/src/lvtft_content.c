@@ -329,9 +329,9 @@ static void anim_timer_cb(lv_timer_t *timer)
  * @brief set the charge screen
  * @param parent lv_obj_t *parent object
  */
-static void set_lv_charge_anim()
+static void set_lv_charge_anim(lv_obj_t *parent)
 {
-    charge_bg = lv_obj_create(lv_layer_top());
+    charge_bg = lv_obj_create(parent);
     lv_obj_clear_flag(charge_bg, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_clear_flag(charge_bg, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_flag(charge_bg, LV_OBJ_FLAG_HIDDEN);
@@ -339,7 +339,7 @@ static void set_lv_charge_anim()
     lv_obj_add_style(charge_bg, &style_main_screen_bg, 0);
     lv_obj_set_style_opa(charge_bg, LV_OPA_50, 0);
 
-    charge_animimg = lv_animimg_create(lv_layer_top());
+    charge_animimg = lv_animimg_create(parent);
     lv_obj_clear_flag(charge_animimg, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_clear_flag(charge_animimg, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_flag(charge_animimg, LV_OBJ_FLAG_HIDDEN);
@@ -370,7 +370,7 @@ void set_lv_main_screen()
     /* create menu on main screen background */
     set_lv_main_screen_menu(main_screen_bg);
     /* create charge animation on top layer */
-    set_lv_charge_anim();
+    set_lv_charge_anim(lv_layer_top());
 }
 
 /*

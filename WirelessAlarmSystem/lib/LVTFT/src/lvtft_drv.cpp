@@ -2,8 +2,7 @@
 #include "TFT_eSPI.h"
 
 #include "lvtft_conf.h"
-#include "lvtft_style.h"
-#include "lvtft.hpp"
+#include "lvtft_drv.hpp"
 
 #define ENCODER_BUTTON_PIN 25
 #define ENCODER_A_PIN 26
@@ -67,8 +66,9 @@ static void encoder_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
         data->state = LV_INDEV_STATE_PRESSED;
 }
 
-static void set_lv_drv()
+void set_lv_drv()
 {
+    /* Initialize some necessary components */
     lv_init();
 
 #if LV_USE_LOG != 0
@@ -80,7 +80,7 @@ static void set_lv_drv()
     tft.begin();
     tft.setRotation(1);
 
-    /*Initialize the display driver*/
+    /* Initialize the display driver */
     lv_disp_drv_init(&disp_drv);
     disp_drv.hor_res = ScreenWidth;
     disp_drv.ver_res = ScreenHeight;
@@ -90,42 +90,22 @@ static void set_lv_drv()
 
     disp = lv_disp_drv_register(&disp_drv);
 
-    /*Initialize the input device driver*/
+    /* Initialize the input device driver */
+    set_encoder();
+
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_ENCODER;
     indev_drv.read_cb = encoder_read;
 
     indev = lv_indev_drv_register(&indev_drv);
 
-    /*Initialize the input device group*/
+    /* Initialize the input device group */
     indev_group = lv_group_create();
     lv_indev_set_group(indev, indev_group);
     lv_group_set_default(indev_group);
 }
 
-static void set_lv_indev_group()
+void set_indev_group_obj(lv_obj_t *obj)
 {
-    lv_group_add_obj(indev_group, enter_tof_page->menu_cont);
-    lv_group_add_obj(indev_group, enter_nw_page->menu_cont);
-    lv_group_add_obj(indev_group, enter_buzzer_page->menu_cont);
-    lv_group_add_obj(indev_group, enter_bms_page->menu_cont);
-}
-
-void set_lvgl()
-{
-    set_encoder();
-
-    set_lv_drv();
-
-    set_lv_style();
-
-    set_lv_top_status_bar();
-
-    set_lv_bottom_status_bar();
-
-    set_lv_main_screen();
-
-    set_lv_indev_group();
-
-    lv_scr_load(main_screen);
+    lv_group_add_obj(indev_group, obj);
 }

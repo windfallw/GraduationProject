@@ -1,8 +1,4 @@
-#include "file.h"
-#include "tof.h"
-#include "IP5108.h"
-#include "lvtft.hpp"
-#include "netsrv.h"
+#include "var.hpp"
 
 TaskHandle_t Task1;
 TaskHandle_t Task2;
@@ -18,46 +14,7 @@ All pins that can act as outputs can be used as PWM pins.
 timerNum = 0 Pin = 13 channel = 0 resolution = 8 */
 shinelight buzzer = shinelight(0, 13, 0);
 
-void update_ui()
-{
-    // lv_obj_t *cur_page = lv_menu_get_cur_main_page(main_screen_menu);
-    lv_label_set_text(top_bar->wifi_txt, WiFi.SSID().c_str());
-    lv_label_set_text_fmt(top_bar->level_txt, "%d%%", bms.percent);
-
-    lv_label_set_text(nw_sta_ip->content, WiFi.localIP().toString().c_str());
-    lv_label_set_text(nw_ap->content, WiFi.softAPSSID().c_str());
-
-    if (bms.percent >= 80)
-        lv_label_set_text(top_bar->level_ico, LV_SYMBOL_BATTERY_FULL);
-    else if (bms.percent >= 60)
-        lv_label_set_text(top_bar->level_ico, LV_SYMBOL_BATTERY_3);
-    else if (bms.percent >= 40)
-        lv_label_set_text(top_bar->level_ico, LV_SYMBOL_BATTERY_2);
-    else if (bms.percent >= 20)
-        lv_label_set_text(top_bar->level_ico, LV_SYMBOL_BATTERY_1);
-    else
-        lv_label_set_text(top_bar->level_ico, LV_SYMBOL_BATTERY_EMPTY);
-
-    if (bms.isCharging)
-    {
-        lv_obj_clear_flag(top_bar->lightning_ico, LV_OBJ_FLAG_HIDDEN);
-    }
-    else
-        lv_obj_add_flag(top_bar->lightning_ico, LV_OBJ_FLAG_HIDDEN);
-
-    lv_label_set_text_fmt(tof_limit_slider1->val, "%d", skp1.distance);
-    lv_label_set_text_fmt(tof_limit_slider2->val, "%d", skp2.distance);
-
-    lv_label_set_text_fmt(bms_current->content, "%d", bms.current);
-    lv_label_set_text_fmt(bms_voltage->content, "%d", bms.voltage);
-    lv_label_set_text_fmt(bms_voltage_oc->content, "%d", bms.voltageOc);
-    lv_label_set_text_fmt(bms_state->content, "%d", bms.State);
-
-    align_lv_top_status_bar();
-    align_lv_bottom_status_bar();
-}
-
-void Task1TOF(void *pvParameters)
+static void Task1TOF(void *pvParameters)
 {
     Serial.printf("%s running on core %d with priority %d\r\n", pcTaskGetTaskName(NULL), xPortGetCoreID(), uxTaskPriorityGet(NULL));
 
@@ -73,7 +30,7 @@ void Task1TOF(void *pvParameters)
     }
 }
 
-void Task2Scan(void *pvParameters)
+static void Task2Scan(void *pvParameters)
 {
     Serial.printf("%s running on core %d with priority %d\r\n", pcTaskGetTaskName(NULL), xPortGetCoreID(), uxTaskPriorityGet(NULL));
 
@@ -111,7 +68,7 @@ void Task2Scan(void *pvParameters)
     }
 }
 
-void Task3TFT(void *pvParameters)
+static void Task3TFT(void *pvParameters)
 {
     Serial.printf("%s running on core %d with priority %d\r\n", pcTaskGetTaskName(NULL), xPortGetCoreID(), uxTaskPriorityGet(NULL));
 
@@ -119,8 +76,7 @@ void Task3TFT(void *pvParameters)
 
     for (;;)
     {
-        update_ui();
-        lv_task_handler();
+        lvtft_handler();
         vTaskDelay(1);
     }
 }
