@@ -41,6 +41,7 @@ void shinelight::open()
         if (!syscg.alarm.ms)
             return;
 
+        ledcSetup(channel, syscg.alarm.freq, resolution);
         ledcWrite(channel, syscg.alarm.dutyCycle);
         IsOn = true;
         timerAlarmWrite(timer, syscg.alarm.ms * 1000, false); // value in microseconds

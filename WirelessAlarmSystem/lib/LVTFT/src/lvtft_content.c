@@ -124,7 +124,7 @@ menu_text_t *create_menu_text(lv_obj_t *parent, const char *title, const char *c
     return text;
 }
 
-menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, const char *title, uint32_t min, uint32_t max, uint32_t val)
+menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, const char *title, uint32_t min, uint32_t max, uint32_t val, bool hide)
 {
     menu_slider_t *obj = lv_mem_alloc(sizeof(menu_slider_t));
 
@@ -147,8 +147,13 @@ menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, const char
     lv_slider_set_range(obj->slider, min, max);
     lv_slider_set_value(obj->slider, val, LV_ANIM_OFF);
 
+    if (hide)
+    {
+        lv_label_set_text_fmt(obj->val, "%d", val);
+        return obj;
+    }
+
     obj->slider_val = lv_label_create(obj->slider);
-    lv_obj_add_flag(obj->slider_val, LV_OBJ_FLAG_HIDDEN);
     lv_obj_center(obj->slider_val);
     lv_obj_set_style_text_color(obj->slider_val, obj_bg_color, 0);
     lv_label_set_text_fmt(obj->slider_val, "%d", val);
@@ -207,7 +212,7 @@ static menu_page_t *create_menu_subpage(lv_obj_t *parent, char *title)
  * @brief handler for the root back button
  * @param event lv_event_t event
  */
-static void root_back_btn_handler(lv_event_t *event)
+static void root_back_btn_event_cb(lv_event_t *event)
 {
     lv_obj_t *obj = lv_event_get_target(event);
     lv_obj_t *menu = lv_event_get_user_data(event);
@@ -246,7 +251,7 @@ static void set_lv_main_screen_menu(lv_obj_t *parent)
 
     lv_img_set_src(lv_obj_get_child(lv_menu_get_main_header_back_btn(main_screen_menu), 0), LV_SYMBOL_RIGHT);
     lv_menu_set_mode_root_back_btn(main_screen_menu, LV_MENU_ROOT_BACK_BTN_ENABLED);
-    lv_obj_add_event_cb(main_screen_menu, root_back_btn_handler, LV_EVENT_CLICKED, main_screen_menu);
+    lv_obj_add_event_cb(main_screen_menu, root_back_btn_event_cb, LV_EVENT_CLICKED, main_screen_menu);
 
     /* create subpage */
     menu_sub_nw = create_menu_subpage(main_screen_menu, "Network Settings");

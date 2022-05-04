@@ -92,7 +92,7 @@ extern "C"
     extern menu_text_t *bms_state;
 
     menu_text_t *create_menu_text(lv_obj_t *parent, const char *title, const char *content);
-    menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, const char *title, uint32_t min, uint32_t max, uint32_t val);
+    menu_slider_t *create_menu_slider(lv_obj_t *parent, const char *icon, const char *title, uint32_t min, uint32_t max, uint32_t val, bool hide);
     menu_switch_t *create_menu_switch(lv_obj_t *parent, const char *icon, const char *title, bool check);
     menu_qrcode_t *create_menu_qrcode(lv_obj_t *parent, const char *icon, const char *title, const char *data);
 
