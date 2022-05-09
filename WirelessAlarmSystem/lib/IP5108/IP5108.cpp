@@ -145,6 +145,9 @@ float IP5108::getBattOcVoltage()
     return outVol;
 }
 
+/*
+ * @brief: get battery state
+ */
 void IP5108::getBattState()
 {
     // 000: idle¿ÕÏÐ×´Ì¬ 0
@@ -155,11 +158,31 @@ void IP5108::getBattState()
     // 101: ³ä±¥×´Ì¬ 160
     // 110: ³äµç³¬Ê±×´Ì¬ 192
 
-    uint8_t Reg_Byte = readReg(Reg_READ0);
-    State = Reg_Byte & Reg_READ0_BIT_ChargeStatusFlags;
+    uint8_t Reg_Byte = readReg(Reg_READ0) & Reg_READ0_BIT_ChargeStatusFlags;
+    uint8_t last_ischarging = isCharging;
 
-    isCharging = State == 0 ? false : true;
-    ChargeFinish = (Reg_Byte & Reg_READ0_BIT_ChargeFinishFlag) == 0 ? false : true;
+    switch (Reg_Byte)
+    {
+    case 32:
+    case 64:
+    case 96:
+    case 128:
+    case 160:
+    case 192:
+        isCharging = true;
+        if (State != Reg_Byte)
+        {
+            State = Reg_Byte;
+            if (!last_ischarging)
+                // state code different from last and turn to charge now
+                toggle = true;
+        }
+        break;
+    default:
+        isCharging = false;
+        State = Reg_Byte;
+        break;
+    }
 }
 
 void IP5108::update()
@@ -174,7 +197,7 @@ void IP5108::update()
     {
         if (isCharging)
         {
-            percent = ChargeFinish ? 100 : 99;
+            percent = State == 160 ? 100 : 99;
             return;
         }
         percent = 100;

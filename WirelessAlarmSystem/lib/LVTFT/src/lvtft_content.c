@@ -314,7 +314,7 @@ static void set_lv_charge_anim(lv_obj_t *parent)
     lv_animimg_set_duration(charge_animimg, 1000);
     lv_animimg_set_repeat_count(charge_animimg, 0);
 
-    charge_anim_timer = lv_timer_create(anim_timer_cb, 700, NULL);
+    charge_anim_timer = lv_timer_create(anim_timer_cb, 950, NULL);
     lv_timer_pause(charge_anim_timer);
 }
 

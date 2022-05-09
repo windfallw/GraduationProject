@@ -333,6 +333,8 @@ private:
     void writeRegBit(REG_t reg, REG_BIT_t bit, bool val);
     void writeRegBits(REG_t reg, REG_BIT_t bit, REG_BIT_t val);
 
+    void getBattState();
+
 public:
     byte Address;
     TwoWire *i2c;
@@ -342,9 +344,8 @@ public:
     uint32_t voltageOc;
 
     uint8_t State;
-
+    uint8_t toggle;
     uint8_t isCharging;
-    uint8_t ChargeFinish;
     uint8_t percent;
 
     IP5108(TwoWire *i, int sdaPin, int sclPin, uint32_t frequency);
@@ -354,7 +355,6 @@ public:
     float getBattVoltage();
     float getBattCurrent();
     float getBattOcVoltage();
-    void getBattState();
 
     void update();
     void scan_i2c();

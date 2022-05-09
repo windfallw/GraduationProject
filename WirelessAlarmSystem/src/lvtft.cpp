@@ -6,6 +6,8 @@
 
 #include "var.hpp"
 
+static const uint32_t MIDDUTYCYCLE = MAXDUTYCYCLE / 2;
+
 static char *generate_qrcode_wifi_data()
 {
     const char *format = "WIFI:T:WPA2;S:%s;P:%s;H:false;";
@@ -13,6 +15,17 @@ static char *generate_qrcode_wifi_data()
     char *data = (char *)malloc(size);
     sprintf(data, format, syscg.ap.ssid.c_str(), syscg.ap.pwd.c_str());
     return data;
+}
+
+static const char *generate_buzzer_duty_icon(uint32_t value)
+{
+    if (value == 0)
+        return LV_SYMBOL_MUTE;
+
+    if (value < MIDDUTYCYCLE)
+        return LV_SYMBOL_VOLUME_MID;
+
+    return LV_SYMBOL_VOLUME_MAX;
 }
 
 static void tof_sw_event_cb(lv_event_t *e)
@@ -33,6 +46,8 @@ static void buzzer_duty_slider_event_cg_cb(lv_event_t *e)
     menu_slider_t *obj = (menu_slider_t *)lv_event_get_user_data(e);
     uint32_t value = lv_slider_get_value(obj->slider);
     lv_label_set_text_fmt(obj->val, "%d", value);
+
+    lv_img_set_src(obj->base->icon, generate_buzzer_duty_icon(value));
 
     if (is_tof_pause_all())
         buzzer.writeCycle(value);
@@ -106,7 +121,7 @@ static void set_lv_content_sub()
     tof_limit_slider2 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 2 (mm)", syscg.alarm.tofMin, syscg.alarm.tofMax, syscg.alarm.tof2, false);
 
     /* subpage buzzer content */
-    buzzer_duty_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_MUTE, "duty cycle", 0, MAXDUTYCYCLE, syscg.alarm.dutyCycle, true);
+    buzzer_duty_slider = create_menu_slider(menu_sub_buzzer->section, generate_buzzer_duty_icon(syscg.alarm.dutyCycle), "duty cycle", 0, MAXDUTYCYCLE, syscg.alarm.dutyCycle, true);
     buzzer_freq_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_AUDIO, "frequency", 0, MAXFREQ, syscg.alarm.freq, true);
     buzzer_ms_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_LOOP, "close delay (ms)", syscg.alarm.msMin, syscg.alarm.msMax, syscg.alarm.ms, true);
 
@@ -149,8 +164,6 @@ void lvtft_task_handler()
     lv_label_set_text(top_bar->wifi_txt, WiFi.SSID().c_str());
     lv_label_set_text_fmt(top_bar->level_txt, "%d%%", bms.percent);
 
-    lv_label_set_text(nw_sta_ip->content, WiFi.localIP().toString().c_str());
-
     if (bms.percent >= 80)
         lv_label_set_text(top_bar->level_ico, LV_SYMBOL_BATTERY_FULL);
     else if (bms.percent >= 60)
@@ -163,22 +176,28 @@ void lvtft_task_handler()
         lv_label_set_text(top_bar->level_ico, LV_SYMBOL_BATTERY_EMPTY);
 
     if (bms.isCharging)
-    {
         lv_obj_clear_flag(top_bar->lightning_ico, LV_OBJ_FLAG_HIDDEN);
-    }
     else
         lv_obj_add_flag(top_bar->lightning_ico, LV_OBJ_FLAG_HIDDEN);
 
+    align_lv_top_status_bar();
+    align_lv_bottom_status_bar();
+
+    if (bms.toggle)
+    {
+        bms.toggle = false;
+        show_lv_charge_anim();
+    }
+
     lv_label_set_text_fmt(tof_limit_slider1->val, "%d", skp1.distance);
     lv_label_set_text_fmt(tof_limit_slider2->val, "%d", skp2.distance);
+
+    lv_label_set_text(nw_sta_ip->content, WiFi.localIP().toString().c_str());
 
     lv_label_set_text_fmt(bms_current->content, "%d", bms.current);
     lv_label_set_text_fmt(bms_voltage->content, "%d", bms.voltage);
     lv_label_set_text_fmt(bms_voltage_oc->content, "%d", bms.voltageOc);
     lv_label_set_text_fmt(bms_state->content, "%d", bms.State);
-
-    align_lv_top_status_bar();
-    align_lv_bottom_status_bar();
 
     lv_task_handler();
 }
