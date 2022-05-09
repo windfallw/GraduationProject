@@ -20,9 +20,9 @@ shinelight::shinelight(uint8_t timerNum, uint8_t pin, uint8_t channel, uint8_t r
 
     timer = timerBegin(timerNum, 80, true);
     timerAttachInterrupt(timer, &onTimerOut, true);
+    ledcAttachPin(pin, channel);
 
     ledcSetup(channel, syscg.alarm.freq, resolution);
-    ledcAttachPin(pin, channel);
     ledcWrite(channel, 0);
 }
 
@@ -34,20 +34,21 @@ shinelight::~shinelight()
 void shinelight::open()
 {
     if (IsOn)
-        timerWrite(timer, 0);
-
-    else
     {
-        if (!syscg.alarm.ms)
-            return;
-
-        ledcSetup(channel, syscg.alarm.freq, resolution);
-        ledcWrite(channel, syscg.alarm.dutyCycle);
-        IsOn = true;
-        timerAlarmWrite(timer, syscg.alarm.ms * 1000, false); // value in microseconds
         timerWrite(timer, 0);
-        timerAlarmEnable(timer);
+        return;
     }
+
+    if (!syscg.alarm.ms)
+        return;
+
+    ledcSetup(channel, syscg.alarm.freq, resolution);
+    ledcWrite(channel, syscg.alarm.dutyCycle);
+
+    IsOn = true;
+    timerAlarmWrite(timer, syscg.alarm.ms * 1000, false); // value in microseconds
+    timerWrite(timer, 0);
+    timerAlarmEnable(timer);
 }
 
 void shinelight::close()
@@ -55,39 +56,39 @@ void shinelight::close()
     ledcWrite(channel, 0);
     IsOn = false;
     timerAlarmDisable(timer);
+    ReqOff = false;
+}
+
+void shinelight::writeFreq(uint32_t fq, bool autoload)
+{
+    // ledcReadFreq(channel)
+    ledcSetup(channel, fq, resolution);
+
+    if (autoload)
+        ledcWrite(channel, syscg.alarm.dutyCycle);
 }
 
 void shinelight::writeCycle(uint32_t cycle)
 {
-    if (ledcRead(channel) != cycle)
-    {
-        syscg.alarm.dutyCycle = cycle;
-        ledcWrite(channel, syscg.alarm.dutyCycle);
-    }
-}
-
-void shinelight::writeFreq(uint32_t fq)
-{
-    if (ledcReadFreq(channel) != fq)
-    {
-        syscg.alarm.freq = fq;
-        ledcSetup(channel, syscg.alarm.freq, resolution);
-    }
+    // ledcRead(channel)
+    ledcWrite(channel, cycle);
 }
 
 void shinelight::fade_test()
 {
     uint32_t dutyCycle = 0;
-    while (dutyCycle < 0xff)
+    while (dutyCycle < MAXDUTYCYCLE)
     {
         dutyCycle++;
         ledcWrite(channel, dutyCycle);
+        delay(1);
     }
 
     while (dutyCycle > 0)
     {
         dutyCycle--;
         ledcWrite(channel, dutyCycle);
+        delay(1);
     }
 }
 

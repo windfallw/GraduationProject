@@ -15,27 +15,48 @@ static char *generate_qrcode_wifi_data()
     return data;
 }
 
-static void pause_sw_event_cb(lv_event_t *e)
+static void tof_sw_event_cb(lv_event_t *e)
 {
-    // lv_event_code_t code = lv_event_get_code(e); // code == LV_EVENT_VALUE_CHANGED
+    // lv_event_code_t code = lv_event_get_code(e);
     lv_obj_t *obj = lv_event_get_target(e);
-
-    if (lv_obj_has_state(obj, LV_STATE_CHECKED))
-    {
-        skp1.pause = true;
-        skp2.pause = true;
-    }
-    else
-    {
-        skp1.pause = false;
-        skp2.pause = false;
-    }
+    lv_obj_has_state(obj, LV_STATE_CHECKED) ? pause_tof_measure() : resume_tof_measure();
 }
 
 static void tof_slider_event_cg_cb(lv_event_t *e)
 {
     menu_slider_t *obj = (menu_slider_t *)lv_event_get_user_data(e);
     lv_label_set_text_fmt(obj->slider_val, "%d", lv_slider_get_value(obj->slider));
+}
+
+static void buzzer_duty_slider_event_cg_cb(lv_event_t *e)
+{
+    menu_slider_t *obj = (menu_slider_t *)lv_event_get_user_data(e);
+    uint32_t value = lv_slider_get_value(obj->slider);
+    lv_label_set_text_fmt(obj->val, "%d", value);
+
+    if (is_tof_pause_all())
+        buzzer.writeCycle(value);
+}
+
+static void buzzer_freq_slider_event_cg_cb(lv_event_t *e)
+{
+    menu_slider_t *obj = (menu_slider_t *)lv_event_get_user_data(e);
+    uint32_t value = lv_slider_get_value(obj->slider);
+    lv_label_set_text_fmt(obj->val, "%d", value);
+
+    if (is_tof_pause_all())
+        buzzer.writeFreq(value, true);
+}
+
+static void buzzer_slider_event_ext_cb(lv_event_t *e)
+{
+    lv_obj_t *obj = lv_event_get_target(e);
+    uint32_t *value = (uint32_t *)lv_event_get_user_data(e);
+    *value = lv_slider_get_value(obj);
+    writeConfigFile();
+
+    if (is_tof_pause_all())
+        buzzer.writeCycle(0);
 }
 
 static void slider_event_cg_cb(lv_event_t *e)
@@ -54,7 +75,7 @@ static void slider_event_ext_cb(lv_event_t *e)
 
 static void set_lv_event()
 {
-    lv_obj_add_event_cb(tof_mute_switch->sw, pause_sw_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(tof_mute_switch->sw, tof_sw_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_add_event_cb(tof_limit_slider1->slider, tof_slider_event_cg_cb, LV_EVENT_VALUE_CHANGED, tof_limit_slider1);
     lv_obj_add_event_cb(tof_limit_slider1->slider, slider_event_ext_cb, LV_EVENT_RELEASED, &syscg.alarm.tof1);
@@ -62,13 +83,13 @@ static void set_lv_event()
     lv_obj_add_event_cb(tof_limit_slider2->slider, tof_slider_event_cg_cb, LV_EVENT_VALUE_CHANGED, tof_limit_slider2);
     lv_obj_add_event_cb(tof_limit_slider2->slider, slider_event_ext_cb, LV_EVENT_RELEASED, &syscg.alarm.tof2);
 
-    lv_obj_add_event_cb(buzzer_duty_slider->slider, slider_event_cg_cb, LV_EVENT_ALL, buzzer_duty_slider);
-    lv_obj_add_event_cb(buzzer_duty_slider->slider, slider_event_ext_cb, LV_EVENT_RELEASED, &syscg.alarm.dutyCycle);
+    lv_obj_add_event_cb(buzzer_duty_slider->slider, buzzer_duty_slider_event_cg_cb, LV_EVENT_VALUE_CHANGED, buzzer_duty_slider);
+    lv_obj_add_event_cb(buzzer_duty_slider->slider, buzzer_slider_event_ext_cb, LV_EVENT_RELEASED, &syscg.alarm.dutyCycle);
 
-    lv_obj_add_event_cb(buzzer_freq_slider->slider, slider_event_cg_cb, LV_EVENT_ALL, buzzer_freq_slider);
-    lv_obj_add_event_cb(buzzer_freq_slider->slider, slider_event_ext_cb, LV_EVENT_RELEASED, &syscg.alarm.freq);
+    lv_obj_add_event_cb(buzzer_freq_slider->slider, buzzer_freq_slider_event_cg_cb, LV_EVENT_VALUE_CHANGED, buzzer_freq_slider);
+    lv_obj_add_event_cb(buzzer_freq_slider->slider, buzzer_slider_event_ext_cb, LV_EVENT_RELEASED, &syscg.alarm.freq);
 
-    lv_obj_add_event_cb(buzzer_ms_slider->slider, slider_event_cg_cb, LV_EVENT_ALL, buzzer_ms_slider);
+    lv_obj_add_event_cb(buzzer_ms_slider->slider, slider_event_cg_cb, LV_EVENT_VALUE_CHANGED, buzzer_ms_slider);
     lv_obj_add_event_cb(buzzer_ms_slider->slider, slider_event_ext_cb, LV_EVENT_RELEASED, &syscg.alarm.ms);
 }
 
@@ -85,8 +106,8 @@ static void set_lv_content_sub()
     tof_limit_slider2 = create_menu_slider(menu_sub_tof->section, LV_SYMBOL_SETTINGS, "tof lidar 2 (mm)", syscg.alarm.tofMin, syscg.alarm.tofMax, syscg.alarm.tof2, false);
 
     /* subpage buzzer content */
-    buzzer_duty_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_MUTE, "duty cycle", 0, 255, syscg.alarm.dutyCycle, true);
-    buzzer_freq_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_AUDIO, "frequency", 0, 100, syscg.alarm.freq, true);
+    buzzer_duty_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_MUTE, "duty cycle", 0, MAXDUTYCYCLE, syscg.alarm.dutyCycle, true);
+    buzzer_freq_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_AUDIO, "frequency", 0, MAXFREQ, syscg.alarm.freq, true);
     buzzer_ms_slider = create_menu_slider(menu_sub_buzzer->section, LV_SYMBOL_LOOP, "close delay (ms)", syscg.alarm.msMin, syscg.alarm.msMax, syscg.alarm.ms, true);
 
     /* subpage bms content */

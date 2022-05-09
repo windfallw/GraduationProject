@@ -7,13 +7,13 @@ typedef struct
 {
     String ssid;
     String pwd;
-} sta_config;
+} sta_cg_t;
 
 typedef struct
 {
     String ssid;
     String pwd;
-} ap_config;
+} ap_cg_t;
 
 typedef struct
 {
@@ -28,7 +28,7 @@ typedef struct
 
     uint32_t freq;
     uint32_t dutyCycle;
-} alarm_config;
+} alarm_cg_t;
 
 typedef struct
 {
@@ -39,14 +39,14 @@ typedef struct
     String publish;
     String server;
     uint16_t port;
-} mqtt_config;
+} mqtt_cg_t;
 
 typedef struct
 {
-    sta_config sta[3];
-    ap_config ap;
-    alarm_config alarm;
-    mqtt_config mqtt;
+    sta_cg_t sta[3];
+    ap_cg_t ap;
+    alarm_cg_t alarm;
+    mqtt_cg_t mqtt;
     String stream;
     char *convert(String str)
     {

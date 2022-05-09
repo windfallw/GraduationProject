@@ -16,4 +16,8 @@ extern SKPTOFLIDAR skp2;
 extern IP5108 bms;
 extern shinelight buzzer;
 
+void resume_tof_measure();
+void pause_tof_measure();
+bool is_tof_pause_all();
+
 #endif

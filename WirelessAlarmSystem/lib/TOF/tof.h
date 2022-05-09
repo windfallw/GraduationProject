@@ -6,6 +6,9 @@
 #define TOFDEVICENUMBER 2
 #define DEFAULT_PAUSE false
 
+#define MAXFREQ 1000
+#define MAXDUTYCYCLE 0xff // resolution: 8bit
+
 typedef struct
 {
     bool onpub = false;
@@ -35,8 +38,8 @@ public:
     void open();
     void close();
 
+    void writeFreq(uint32_t fq, bool autoload = false);
     void writeCycle(uint32_t cycle);
-    void writeFreq(uint32_t fq);
 
     void fade_test();
 };

@@ -14,6 +14,29 @@ All pins that can act as outputs can be used as PWM pins.
 timerNum = 0 Pin = 13 channel = 0 resolution = 8 */
 shinelight buzzer = shinelight(0, 13, 0);
 
+void resume_tof_measure()
+{
+    skp1.pause = false;
+    skp2.pause = false;
+}
+
+void pause_tof_measure()
+{
+    skp1.pause = true;
+    skp2.pause = true;
+
+    if (buzzer.IsOn)
+        buzzer.close();
+}
+
+bool is_tof_pause_all()
+{
+    if (skp1.pause && skp2.pause)
+        return true;
+
+    return false;
+}
+
 static void Task1TOF(void *pvParameters)
 {
     Serial.printf("%s running on core %d with priority %d\r\n", pcTaskGetTaskName(NULL), xPortGetCoreID(), uxTaskPriorityGet(NULL));
@@ -23,7 +46,9 @@ static void Task1TOF(void *pvParameters)
 
     for (;;)
     {
-        if (skp1.handler(syscg.alarm.tof1) || skp2.handler(syscg.alarm.tof2))
+        // https://stackoverflow.com/questions/34492501/difference-between-and-or-and
+        // https://stackoverflow.com/questions/35301/what-is-the-difference-between-the-and-or-operators
+        if (skp1.handler(syscg.alarm.tof1) | skp2.handler(syscg.alarm.tof2))
             buzzer.open();
 
         vTaskDelay(1); // vTaskDelay() = delay()
@@ -60,7 +85,6 @@ static void Task2Scan(void *pvParameters)
                     }
                 }
             }
-            buzzer.ReqOff = false;
         }
 
         bms.update();
