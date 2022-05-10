@@ -171,11 +171,7 @@ void loop()
         signal.wifi = false;
         if (!WiFi.isConnected())
             conn_wifi(true);
-    }
-
-    if (signal.mqtt && WiFi.isConnected())
-    {
-        signal.mqtt = false;
-        mqttClient.connect();
+        if (WiFi.isConnected() && !mqttClient.connected())
+            mqttClient.connect();
     }
 }

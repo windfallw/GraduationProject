@@ -177,7 +177,7 @@ public:
     virtual ~CaptiveRequestHandler() {}
     bool canHandle(AsyncWebServerRequest *request)
     {
-        // request->addInterestingHeader("ANY");
+        request->addInterestingHeader("ANY");
         return true;
     }
 

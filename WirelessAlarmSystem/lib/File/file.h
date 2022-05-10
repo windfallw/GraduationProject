@@ -60,7 +60,6 @@ typedef struct
     String pwd;
     bool web = false;                        // for web
     bool wifi = false;                       // wifi check flag
-    bool mqtt = false;                       // mqtt check flag
     bool lvgl = false;                       // lvgl check flag
     const uint64_t checkMicroSec = 10000000; // use timer to check wifi status per 10s
 } sys_signal_t;

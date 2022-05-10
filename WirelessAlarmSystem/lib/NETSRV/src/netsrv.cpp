@@ -199,6 +199,20 @@ void set_netsrv()
                   return request->send(200, TEXT_MIMETYPE, "unknown param");
               });
 
+    server.on("/postmqtt", HTTP_POST,
+              [](AsyncWebServerRequest *request)
+              {
+                  String server = request->arg("mqtt_server");
+                  uint16_t port = request->arg("mqtt_port").toInt();
+                  syscg.mqtt.server = server;
+                  syscg.mqtt.port = port;
+                  mqttClient.disconnect(true);
+                  mqttClient.setServer(syscg.mqtt.server.c_str(), syscg.mqtt.port);
+                  mqttClient.connect();
+                  writeConfigFile();
+                  request->send(200, TEXT_MIMETYPE, "Done!");
+              });
+
     server.on("/machine", HTTP_POST,
               [](AsyncWebServerRequest *request)
               {
@@ -388,7 +402,6 @@ void onMqttConnect(bool sessionPresent)
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason)
 {
     Serial.println("Disconnected from MQTT");
-    signal.mqtt = true;
 }
 
 void onMqttSubscribe(uint16_t packetId, uint8_t qos)
@@ -486,18 +499,17 @@ void set_mqtt()
     mqttClient.setServer(syscg.mqtt.server.c_str(), syscg.mqtt.port);
     mqttClient.setCredentials(syscg.mqtt.user.c_str(), syscg.mqtt.pwd.c_str());
     mqttClient.setKeepAlive(30);
+
     if (WiFi.isConnected())
         mqttClient.connect();
-    else
-        signal.mqtt = true;
 }
 
 void set_checkTimer(uint8_t timerNum)
 {
     timer = timerBegin(timerNum, 80, true);
     timerAttachInterrupt(timer, &onTimerOut, true);
-    /* autoreload = true
-    value in microseconds so 10,000,000 = 10s */
+    /* autoreload = true */
+    // value in microseconds eg. 10,000,000 = 10s
     timerAlarmWrite(timer, signal.checkMicroSec, true);
     timerAlarmEnable(timer);
 }
