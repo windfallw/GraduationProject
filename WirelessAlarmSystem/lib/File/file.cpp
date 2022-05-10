@@ -34,7 +34,7 @@ static sys_cg_t config_sys_init()
 }
 
 sys_cg_t syscg = config_sys_init();
-conn_sign_t conn_sign;
+sys_signal_t signal;
 
 void set_littlefs()
 {

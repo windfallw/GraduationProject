@@ -15,7 +15,7 @@ static hw_timer_t *timer;
 
 static void IRAM_ATTR onTimerOut()
 {
-    conn_sign.wifi = true;
+    signal.wifi = true;
 }
 
 void set_OTA(char *hostname)
@@ -156,16 +156,16 @@ void set_netsrv()
               {
                   String ssid = request->arg("ssid");
                   String pwd = request->arg("pwd");
-                  if (conn_sign.web)
+                  if (signal.web)
                   {
                       request->send(200, TEXT_MIMETYPE, "PLZ WAITING...");
                   }
                   else
                   {
                       request->send(200, TEXT_MIMETYPE, "CMD RECEIVED! Executing...");
-                      conn_sign.ssid = ssid;
-                      conn_sign.pwd = pwd;
-                      conn_sign.web = true;
+                      signal.ssid = ssid;
+                      signal.pwd = pwd;
+                      signal.web = true;
                   }
               });
 
@@ -179,6 +179,7 @@ void set_netsrv()
                       syscg.alarm.tof1 = warnNum;
                       syscg.alarm.tof2 = warnNum;
                       writeConfigFile();
+                      signal.lvgl = true;
                       request->send(200, TEXT_MIMETYPE, "Done!");
                   }
                   return request->send(200, TEXT_MIMETYPE, "unknown param");
@@ -192,6 +193,7 @@ void set_netsrv()
                   {
                       syscg.alarm.ms = warnSec;
                       writeConfigFile();
+                      signal.lvgl = true;
                       request->send(200, TEXT_MIMETYPE, "Done!");
                   }
                   return request->send(200, TEXT_MIMETYPE, "unknown param");
@@ -212,7 +214,7 @@ void set_netsrv()
                   }
                   else if (p->value() == "scan")
                   {
-                      if (!conn_sign.web)
+                      if (!signal.web)
                           // avoid scan and conn at the same time!
                           WiFi.scanNetworks(true);
                       AsyncWebServerResponse *response = request->beginResponse(200, TEXT_MIMETYPE, p->value());
@@ -386,7 +388,7 @@ void onMqttConnect(bool sessionPresent)
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason)
 {
     Serial.println("Disconnected from MQTT");
-    conn_sign.mqtt = true;
+    signal.mqtt = true;
 }
 
 void onMqttSubscribe(uint16_t packetId, uint8_t qos)
@@ -443,6 +445,8 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties 
 
                     writeConfigFile();
 
+                    signal.lvgl = true;
+
                     doc["status"] = true;
                 }
                 else
@@ -485,7 +489,7 @@ void set_mqtt()
     if (WiFi.isConnected())
         mqttClient.connect();
     else
-        conn_sign.mqtt = true;
+        signal.mqtt = true;
 }
 
 void set_checkTimer(uint8_t timerNum)
@@ -494,6 +498,6 @@ void set_checkTimer(uint8_t timerNum)
     timerAttachInterrupt(timer, &onTimerOut, true);
     /* autoreload = true
     value in microseconds so 10,000,000 = 10s */
-    timerAlarmWrite(timer, conn_sign.checkMicroSec, true);
+    timerAlarmWrite(timer, signal.checkMicroSec, true);
     timerAlarmEnable(timer);
 }

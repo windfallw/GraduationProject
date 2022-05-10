@@ -155,27 +155,27 @@ void loop()
     ArduinoOTA.handle();
     dnsServer.processNextRequest();
 
-    if (conn_sign.web)
+    if (signal.web)
     {
         // only exec once.
-        conn_sign.web = false;
-        if (!conn_wifi(conn_sign.ssid, conn_sign.pwd))
+        signal.web = false;
+        if (!conn_wifi(signal.ssid, signal.pwd))
         {
             // connect fail rollback to known wifi.
             conn_wifi(false);
         }
     }
 
-    if (conn_sign.wifi)
+    if (signal.wifi)
     {
-        conn_sign.wifi = false;
+        signal.wifi = false;
         if (!WiFi.isConnected())
             conn_wifi(true);
     }
 
-    if (conn_sign.mqtt && WiFi.isConnected())
+    if (signal.mqtt && WiFi.isConnected())
     {
-        conn_sign.mqtt = false;
+        signal.mqtt = false;
         mqttClient.connect();
     }
 }

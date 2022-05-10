@@ -189,11 +189,27 @@ void lvtft_task_handler()
         show_lv_charge_anim();
     }
 
+    if (signal.lvgl)
+    {
+        signal.lvgl = false;
+        lv_slider_set_value(tof_limit_slider1->slider, syscg.alarm.tof1, LV_ANIM_ON);
+        lv_label_set_text_fmt(tof_limit_slider1->slider_val, "%d", syscg.alarm.tof1);
+
+        lv_slider_set_value(tof_limit_slider2->slider, syscg.alarm.tof2, LV_ANIM_ON);
+        lv_label_set_text_fmt(tof_limit_slider2->slider_val, "%d", syscg.alarm.tof2);
+
+        lv_slider_set_value(buzzer_ms_slider->slider, syscg.alarm.ms, LV_ANIM_ON);
+        lv_label_set_text_fmt(buzzer_ms_slider->val, "%d", syscg.alarm.ms);
+    }
+
+    // tof page
     lv_label_set_text_fmt(tof_limit_slider1->val, "%d", skp1.distance);
     lv_label_set_text_fmt(tof_limit_slider2->val, "%d", skp2.distance);
 
+    // service page
     lv_label_set_text(nw_sta_ip->content, WiFi.localIP().toString().c_str());
 
+    // battery page
     lv_label_set_text_fmt(bms_current->content, "%d", bms.current);
     lv_label_set_text_fmt(bms_voltage->content, "%d", bms.voltage);
     lv_label_set_text_fmt(bms_voltage_oc->content, "%d", bms.voltageOc);

@@ -61,12 +61,13 @@ typedef struct
     bool web = false;                        // for web
     bool wifi = false;                       // wifi check flag
     bool mqtt = false;                       // mqtt check flag
+    bool lvgl = false;                       // lvgl check flag
     const uint64_t checkMicroSec = 10000000; // use timer to check wifi status per 10s
-} conn_sign_t;
+} sys_signal_t;
 
 extern sys_cg_t syscg;
 
-extern conn_sign_t conn_sign;
+extern sys_signal_t signal;
 
 void set_littlefs();
 void listDir(const char *dirname, uint8_t levels);
