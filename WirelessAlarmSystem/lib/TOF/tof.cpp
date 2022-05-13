@@ -170,9 +170,9 @@ uint8_t SKPTOFLIDAR::read_tof()
 
             return true;
         }
-        else
+        // else
             // format error
-            print_buffs();
+            // print_buffs();
     }
     else
         uart->read(); // read first byte of incoming serial data

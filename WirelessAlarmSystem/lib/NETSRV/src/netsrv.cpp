@@ -206,8 +206,8 @@ void set_netsrv()
                   uint16_t port = request->arg("mqtt_port").toInt();
                   syscg.mqtt.server = server;
                   syscg.mqtt.port = port;
-                  mqttClient.disconnect(true);
                   mqttClient.setServer(syscg.mqtt.server.c_str(), syscg.mqtt.port);
+                  mqttClient.disconnect();
                   mqttClient.connect();
                   writeConfigFile();
                   request->send(200, TEXT_MIMETYPE, "Done!");

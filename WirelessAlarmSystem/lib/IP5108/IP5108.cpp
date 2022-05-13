@@ -63,8 +63,8 @@ void IP5108::writeReg(REG_t reg, uint8_t val)
     if (readReg(reg) == val)
         return;
 
-    else
-        Serial.printf("IP5108 write %d\r\n", val);
+    // else
+    //     Serial.printf("IP5108 write %d\r\n", val);
 
     i2c->beginTransmission(Address);
     i2c->write(reg);
