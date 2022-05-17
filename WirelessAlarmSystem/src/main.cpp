@@ -12,7 +12,7 @@ IP5108 bms = IP5108(&Wire, 21, 22, 400000); // SDA1 21 SCL1 22
 /* pin channel(0-15) resolution(1-16)  freq
 All pins that can act as outputs can be used as PWM pins.
 timerNum = 0 Pin = 13 channel = 0 resolution = 8 */
-shinelight buzzer = shinelight(0, 13, 0);
+shinelight buzzer = shinelight(0, 13, 0); // backup pin19
 
 void resume_tof_measure()
 {
